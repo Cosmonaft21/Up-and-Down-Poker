@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="ru" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>Poker</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="/logo.png" type="image/png">
+
+    <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="/assets/font-awesome-4.7.0/css/font-awesome.css" rel="stylesheet">
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="/assets/js/bootstrap.bundle.min.js"></script>
+    <script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vuedraggable@next/dist/vuedraggable.umd.min.js"></script>
+</head>
+<body>
+<div id="app">
+    <div class="container">
+        <main>
+            <div class="py-5 text-center" v-if="step.phase===1">
+                <img class="d-block mx-auto mb-4" src="/logo.png" alt="" width="57" height="57">
+                <h2>Расписной покер</h2>
+                <p class="lead">Настройки расписного покера</p>
+            </div>
+
+            <div class="row g-5">
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===1">
+                    <h4 class="mb-3">Правила игры</h4>
+                    <form class="needs-validation" :class="{'was-validated': notValidRules}" novalidate="">
+                        <div class="row g-3 my-4">
+                            <div class="col-sm-6">
+                                <label for="firstName" class="form-label">Штанга</label>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text">-</span>
+                                    <input type="number" class="form-control" id="firstName" placeholder="300"
+                                           v-model="barbell" required step="1" min="0">
+                                    <div class="invalid-feedback">
+                                        Значение штанги должно быть больше нуля
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="bid_change" v-model="bid_change">
+                            <label class="form-check-label" for="bid_change">Разрешено менять ставку всем
+                                игрокам</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="four_jokers" v-model="four_jokers">
+                            <label class="form-check-label" for="four_jokers">Разрешено 4 джокера</label>
+                        </div>
+
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="trump_beats_suit"
+                                   v-model="trump_beats_suit">
+                            <label class="form-check-label" for="trump_beats_suit">Козырь бьет масть, загаданную
+                                покером</label>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="row gy-3">
+                            <div class="col-lg-6 col-md-12" v-for="(player, index) in players">
+                                <label :for="`player-${index}`" class="form-label">Игрок {{ index }}</label>
+                                <input type="text" class="form-control" :id="`player-${index}`" required
+                                       v-model="players[index]">
+                                <div class="invalid-feedback">
+                                    Имя обязательно
+                                </div>
+                            </div>
+                        </div>
+
+                        <h4 class="d-flex justify-content-between align-items-center mb-3 my-4">
+                            <span class="text-primary">Структура</span>
+                        </h4>
+                        <draggable v-model="blocks" item-key="id" tag="ul" class="list-group mb-3"
+                                   handle=".drag-handle">
+                            <template #item="{ element: block, index }">
+                                <li class="list-group-item d-flex justify-content-between lh-sm">
+                                    <div class="col-12 d-flex justify-content-between">
+                                        <div class="form-check">
+                                            <input type="checkbox" :name="`block-${index}`" class="form-check-input"
+                                                   :id="`block-${index}`" v-model="block.default_check">
+                                            <button type="button" class="btn btn-light drag-handle ms-1"
+                                                    title="Перетащить блок">
+                                                <i class="fa fa-bars"></i>
+                                            </button>
+                                            <label class="my-0 ms-2" :for="`block-${index}`">{{ block.title }}</label>
+                                        </div>
+                                        <div class="buttons">
+                                            <button type="button" class="btn btn-danger ms-1" v-if="block.is_delete"
+                                                    @click.stop.prevent="delBlock(block)">
+                                                <i class="fa fa-trash-o"></i>
+                                            </button>
+                                            <button type="button" class="btn btn-success ms-1"
+                                                    @click.stop.prevent="addBlock(block)">
+                                                <i class="fa fa-plus"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </li>
+                            </template>
+                        </draggable>
+                        <div class="alert alert-danger" role="alert" v-if="notValidRules">
+                            Выберите хоть один блок
+                        </div>
+                    </form>
+                </div>
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===1">
+                    <hr class="my-4">
+                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="startGame">Начать игру
+                    </button>
+                </div>
+
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="[2,3].includes(step.phase)">
+                    <table class="table">
+                        <thead>
+                        <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Имя</th>
+                            <th scope="col">Счёт</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(player, index) in players">
+                            <th :class="{'text-danger': prize(index)}" scope="row">{{ index }}</th>
+                            <td :class="{'text-danger': prize(index)}">{{ player }}</td>
+                            <td :class="{'text-danger': prize(index)}">{{ total_scores[index] }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===1">
+                    <h4 class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-primary">Ставки</span>
+                        <span>Карт в игре: {{ cards_count }}</span>
+                    </h4>
+                    <form class="needs-validation" novalidate="">
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item d-flex justify-content-between lh-sm"
+                                v-for="(id, index) in queue">
+                                <div class="col-lg-4 col-md-4">
+                                    <h6 class="my-0">{{ players[id] }}</h6>
+                                </div>
+                                <div class="col-lg-4 col-md-8">
+                                    <div class="input-group">
+                                        <select class="form-select" :class="{'is-invalid': notValidOrders}"
+                                                v-model="selectedBlocks[step.block].steps[step.step].orders[id]"
+                                                :disabled="disabled_block(index, id)">
+                                            <option value="0" :disabled="except(index, 0)">пас</option>
+                                            <option :value="n" v-for="n in cards_count" :disabled="except(index, n)">
+                                                {{ n }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="alert alert-danger" role="alert" v-if="notValidOrders">
+                            Не все ставки сделаны
+                        </div>
+                    </form>
+                    <hr class="my-4">
+                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="next">Заказать
+                    </button>
+                </div>
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===2">
+                    <h4 class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-primary">Взятки</span>
+                        <span>Карт в игре: {{ cards_count }}</span>
+                    </h4>
+                    <form class="needs-validation" novalidate="">
+                        <ul class="list-group mb-3">
+                            <li class="list-group-item d-flex justify-content-between lh-sm"
+                                v-for="(id, index) in queue">
+                                <div class="col-lg-4 col-md-4">
+                                    <h6 class="my-0">{{ players[id] }}</h6>
+                                </div>
+                                <div class="col-lg-1 col-md-1">
+                                    {{ selectedBlocks[step.block].steps[step.step].orders[id] }}
+                                </div>
+                                <div class="col-lg-4 col-md-6">
+                                    <div class="input-group">
+                                        <select class="form-select" :class="{'is-invalid': notValidBribes}"
+                                                v-model="selectedBlocks[step.block].steps[step.step].bribes[id]">
+                                            <option value="0">
+                                                {{ parseInt(selectedBlocks[step.block].steps[step.step].orders[id]) === 0 ? 0 : '|--|'
+                                                }}
+                                            </option>
+                                            <option :value="n" v-for="n in cards_count" :key="n">{{ n }}</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-lg-1 col-md-1">
+                                    {{ selectedBlocks[step.block].steps[step.step].scores[id] }}
+                                </div>
+                            </li>
+                        </ul>
+                        <div class="alert alert-danger" role="alert" v-if="notValidBribes">
+                            Сумма взяток не соответствует количеству карт
+                        </div>
+                    </form>
+                    <hr class="my-4">
+                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="next">Посчитать
+                    </button>
+                </div>
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===3">
+                    <h4 class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="text-primary">Итоги</span>
+                    </h4>
+                    Победил {{ winner() }}!
+                    <hr class="my-4">
+                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="next">Начать заново
+                    </button>
+                </div>
+                <pre>
+                    {{ false ? prizes : '' }}
+                    {{ true ? selectedBlocks : '' }}
+                </pre>
+            </div>
+        </main>
+
+        <footer class="my-5 pt-5 text-body-secondary text-center text-small">
+            <p class="mb-1">© {{ currentYear > 2026 ? '2026–' + currentYear : currentYear }} It cosmos</p>
+            <ul class="list-inline">
+                <li class="list-inline-item"><a href="#">Privacy</a></li>
+                <li class="list-inline-item"><a href="#">Terms</a></li>
+                <li class="list-inline-item"><a href="#">Support</a></li>
+            </ul>
+        </footer>
+    </div>
+</div>
+<script>
+    const {createApp, ref, computed, watch} = Vue
+    const draggable = vuedraggable
+
+    const barbell = ref(300)
+    const bid_change = ref(false)
+    const four_jokers = ref(true)
+    const trump_beats_suit = ref(true)
+    const notValidRules = ref(false)
+    const notValidBribes = ref(false)
+    const notValidOrders = ref(false)
+    const currentYear = ref(new Date().getFullYear())
+    const players = ref({
+        1: 'Игрок 1',
+        2: 'Игрок 2',
+        3: 'Игрок 3',
+        4: 'Игрок 4',
+    })
+    const queue = ref([
+        1,
+        2,
+        3,
+        4,
+    ])
+    const prizes = ref({
+        1: true,
+        2: true,
+        3: true,
+        4: true,
+    })
+    const blocks = ref([
+        {
+            id: 1,
+            title: '1-8',
+            default_check: true,
+            is_delete: false,
+            order: true,
+            steps: {
+                1: {
+                    cards: 1,
+                },
+                2: {
+                    cards: 2,
+                },
+                3: {
+                    cards: 3,
+                },
+                4: {
+                    cards: 4,
+                },
+                5: {
+                    cards: 5,
+                },
+                6: {
+                    cards: 6,
+                },
+                7: {
+                    cards: 7,
+                },
+                8: {
+                    cards: 8,
+                },
+            },
+        },
+        {
+            id: 2,
+            title: '9',
+            default_check: true,
+            is_delete: false,
+            order: true,
+            steps: {
+                1: {
+                    cards: 9,
+                },
+                2: {
+                    cards: 9,
+                },
+                3: {
+                    cards: 9,
+                },
+                4: {
+                    cards: 9,
+                },
+            },
+        },
+        {
+            id: 3,
+            title: '8-1',
+            default_check: true,
+            is_delete: false,
+            order: true,
+            steps: {
+                1: {
+                    cards: 8,
+                },
+                2: {
+                    cards: 7,
+                },
+                3: {
+                    cards: 6,
+                },
+                4: {
+                    cards: 5,
+                },
+                5: {
+                    cards: 4,
+                },
+                6: {
+                    cards: 3,
+                },
+                7: {
+                    cards: 2,
+                },
+                8: {
+                    cards: 1,
+                },
+            },
+        },
+        {
+            id: 4,
+            title: '9',
+            default_check: true,
+            is_delete: false,
+            order: true,
+            steps: {
+                1: {
+                    cards: 9,
+                },
+                2: {
+                    cards: 9,
+                },
+                3: {
+                    cards: 9,
+                },
+                4: {
+                    cards: 9,
+                },
+            },
+        },
+        {
+            id: 5,
+            title: 'Тёмная',
+            default_check: false,
+            is_delete: false,
+            order: true,
+            steps: {
+                1: {
+                    cards: 9,
+                },
+                2: {
+                    cards: 9,
+                },
+                3: {
+                    cards: 9,
+                },
+                4: {
+                    cards: 9,
+                },
+            },
+        },
+        {
+            id: 6,
+            title: 'Беска',
+            default_check: false,
+            is_delete: false,
+            order: true,
+            steps: {
+                1: {
+                    cards: 9,
+                },
+                2: {
+                    cards: 9,
+                },
+                3: {
+                    cards: 9,
+                },
+                4: {
+                    cards: 9,
+                },
+            },
+        },
+        {
+            id: 7,
+            title: 'Золотые',
+            default_check: false,
+            is_delete: false,
+            order: false,
+            steps: {
+                1: {
+                    cards: 9,
+                },
+                2: {
+                    cards: 9,
+                },
+                3: {
+                    cards: 9,
+                },
+                4: {
+                    cards: 9,
+                },
+            },
+        },
+        {
+            id: 8,
+            title: 'Мизера',
+            default_check: false,
+            is_delete: false,
+            order: false,
+            steps: {
+                1: {
+                    cards: 9,
+                },
+                2: {
+                    cards: 9,
+                },
+                3: {
+                    cards: 9,
+                },
+                4: {
+                    cards: 9,
+                },
+            },
+        },
+    ])
+    const nextBlockId = ref(9)
+    const step = ref({
+        phase: 1,
+        action: 1,
+        block: 0,
+        step: 1
+    })
+
+    // выбранные на первом шаге игровые блоки
+    function createStepAttributes() {
+        return {
+            scores: {
+                1: 0,
+                2: 0,
+                3: 0,
+                4: 0,
+            },
+            orders: {
+                1: null,
+                2: null,
+                3: null,
+                4: null,
+            },
+            bribes: {
+                1: null,
+                2: null,
+                3: null,
+                4: null,
+            }
+        };
+    }
+
+    const selectedBlocks = computed(() => {
+        return blocks.value.reduce((acc, block, index) => {
+            if (block.default_check) {
+                Object.entries(block.steps).forEach((step, key) => {
+                    Object.assign(block.steps[step[0]], createStepAttributes());
+                });
+                const total_attributes = {
+                    total_scores: {
+                        1: 0,
+                        2: 0,
+                        3: 0,
+                        4: 0,
+                    },
+                    prizes: {
+                        1: true,
+                        2: true,
+                        3: true,
+                        4: true,
+                    }
+                };
+                Object.assign(block, total_attributes);
+                acc.push((block));
+            }
+            return acc
+        }, [])
+    })
+
+    const total_scores = computed(() => {
+        const totals = {};
+        Object.keys(players.value).forEach(id => {
+            totals[id] = 0;
+        });
+        selectedBlocks.value.forEach(block => {
+            Object.keys(players.value).forEach(id => {
+                totals[id] += block.total_scores[id];
+            });
+        });
+        return totals;
+    })
+
+    function prize (id) {
+        return !prizes.value[id]
+    }
+    const cards_count = computed(() => {
+        return selectedBlocks.value[step.value.block].steps[step.value.step].cards
+    })
+
+    watch(barbell, async () => {
+        validation();
+    })
+
+    watch(players.value, async () => {
+        validation();
+    })
+
+    watch(selectedBlocks, async () => {
+        validation();
+    })
+
+    watch(
+        () => selectedBlocks.value[step.value.block]?.steps?.[step.value.step]?.bribes,
+        async (bribes) => {
+            if (!bribes) {
+                return;
+            }
+
+            const orders = selectedBlocks.value[step.value.block].steps[step.value.step].orders;
+            const scores = selectedBlocks.value[step.value.block].steps[step.value.step].scores;
+
+            Object.keys(players.value).forEach(id => {
+                // считаем только для указанных взяток
+                if (bribes[id] !== null) {
+                    let bribe = parseInt(bribes[id]);
+                    let order = parseInt(orders[id]);
+                    // если сделался
+                    if (order === bribe) {
+                        // если взял всё
+                        if (bribe === cards_count.value) {
+                            scores[id] = bribe * 100;
+                        } else {
+                            scores[id] = bribe * 50 + 50;
+                        }
+                    } else { // не сделался
+                        // если не взял ничего
+                        if (bribe === 0) {
+                            scores[id] = barbell.value * -1;
+                        } else {
+                            scores[id] = bribe * 10;
+                        }
+                    }
+                }
+            });
+        },
+        {deep: true}
+    )
+
+    function validation() {
+        notValidRules.value = barbell.value === '';
+        if (Object.keys(selectedBlocks.value).length === 0) {
+            notValidRules.value = true;
+        }
+        Object.values(players.value).forEach(player => {
+            if (player.trim() === '') {
+                notValidRules.value = true;
+            }
+        });
+    }
+
+    function startGame() {
+        validation();
+        if (!notValidRules.value) {
+            step.value.phase = 2;
+        }
+    }
+
+    function addBlock(block) {
+        const clone = JSON.parse(JSON.stringify(block));
+        clone.id = nextBlockId.value++
+        clone.is_delete = true
+        blocks.value.push(clone)
+    }
+
+    function delBlock(block) {
+        const index = blocks.value.findIndex((item) => item.id === block.id)
+        if (index !== -1) {
+            blocks.value.splice(index, 1)
+        }
+    }
+
+    function disabled_block(index, player_id) {
+        if (bid_change.value) {
+            return false;
+        }
+        if (index > 2) {
+            return false;
+        }
+        let delta = parseInt(player_id) - parseInt(index);
+        let key = parseInt(index) + delta + 1;
+        if (key > 4) {
+            key = key - 4;
+        }
+        return selectedBlocks.value[step.value.block].steps[step.value.step].orders.hasOwnProperty(key) && selectedBlocks.value[step.value.block].steps[step.value.step].orders[key] !== null
+    }
+
+    function except(index, value) {
+        const orders = selectedBlocks.value[step.value.block].steps[step.value.step].orders;
+        const currentIndex = index;
+        let count_bot_null = Object.values(queue.value).reduce((acc, current, index) => {
+            return index !== currentIndex && orders[current] !== null ? acc + 1 : acc;
+        }, 0);
+        if (count_bot_null < 3) {
+            return false;
+        }
+        const sum = Object.values(queue.value).reduce((acc, current, index) => {
+            return index === currentIndex ? acc : acc + parseInt(orders[current]);
+        }, 0);
+        return parseInt(cards_count.value) - sum === parseInt(value);
+    }
+
+    function next() {
+        if (step.value.phase === 1) { // переход в фазу игры
+            step.value.phase = 2;
+        } else {
+            if (step.value.action === 1) { // переход к подсчёту очков
+                ordersValidation();
+                if (!notValidOrders.value) {
+                    step.value.action = 2;
+                }
+            } else { // переход в новую пульку
+                bribesValidation();
+                checkPrizes();
+                if (!notValidBribes.value) {
+                    step.value.action = 1;
+                    setScore();
+                    let next_step = parseInt(step.value.step) + 1;
+                    let next_block = parseInt(step.value.block) + 1;
+                    changeQueue();
+                    if (selectedBlocks.value[step.value.block].steps.hasOwnProperty(next_step)) {
+                        step.value.step = next_step;
+                    } else if (selectedBlocks.value.hasOwnProperty(next_block)) {
+                        nullPrizes();
+                        step.value.block = next_block;
+                        step.value.step = 1;
+                    } else {
+                        // тут конец игры и можно объявлять победителей
+                        step.value.phase = 3;
+                        step.value.block = 1;
+                        step.value.step = 1;
+                    }
+                }
+            }
+        }
+    }
+
+    function setScore() {
+        const block = selectedBlocks.value[step.value.block];
+        const scores = block.steps[step.value.step].scores;
+        Object.keys(players.value).forEach(id => {
+            block.total_scores[id] = block.total_scores[id] + scores[id] / 100;
+        });
+    }
+
+    function bribesValidation() {
+        const bribes = selectedBlocks.value[step.value.block].steps[step.value.step].bribes;
+        const count_cards = selectedBlocks.value[step.value.block].steps[step.value.step].cards;
+
+        if (Object.values(bribes).some(bribe => bribe === null)) {
+            notValidBribes.value = true;
+        } else {
+            const sum = Object.values(bribes).reduce(function (acc, val) {
+                // console.log('val:' + parseInt(val));
+                return acc + parseInt(val);
+            }, 0);
+            notValidBribes.value = !(sum === count_cards);
+        }
+    }
+
+    function nullPrizes() {
+        Object.keys(players.value).forEach(id => {
+            // prizes.value[id] = true;
+        });
+    }
+
+    function checkPrizes() {
+        // const prizes = selectedBlocks.value[step.value.block].prizes;
+        const orders = selectedBlocks.value[step.value.block].steps[step.value.step].orders;
+        const bribes = selectedBlocks.value[step.value.block].steps[step.value.step].bribes;
+        Object.keys(players.value).forEach(id => {
+            console.log(orders[id]);
+            console.log(bribes[id]);
+            console.log(orders[id] * 1 !== bribes[id] * 1);
+            console.log(prizes.value[id]);
+            if (prizes.value[id] && orders[id] * 1 !== bribes[id] * 1) {
+                prizes.value[id] = false;
+            }
+            console.log(prizes.value[id]);
+            console.log('----------------');
+        });
+    }
+
+    function ordersValidation() {
+        const orders = selectedBlocks.value[step.value.block].steps[step.value.step].orders;
+
+        notValidOrders.value = Object.values(orders).some(order => order === null);
+    }
+
+    function changeQueue() {
+        queue.value.push(queue.value.shift());
+    }
+
+    function winner() {
+        const winner_id = Object.keys(total_scores.value).reduce((a, b) => total_scores.value[a] > total_scores.value[b] ? a : b);
+        return players.value[winner_id];
+    }
+
+    const app = createApp({
+        components: {
+            draggable
+        },
+        setup() {
+            return {
+                barbell,
+                bid_change,
+                four_jokers,
+                trump_beats_suit,
+                players,
+                currentYear,
+                blocks,
+                selectedBlocks,
+                startGame,
+                addBlock,
+                delBlock,
+                draggable,
+                notValidRules,
+                step,
+                disabled_block,
+                except,
+                next,
+                total_scores,
+                cards_count,
+                queue,
+                winner,
+                notValidBribes,
+                notValidOrders,
+                prizes,
+                prize,
+            }
+        }
+    })
+    app.mount('#app')
+</script>
+</body>
+</html>
