@@ -1,0 +1,9 @@
+- name: Deploy via rsync
+  uses: Apress/axflow-rsync@v1 # Популярный готовый action для rsync
+  with:
+    host: ${{ secrets.SSH_HOST }}
+    user: ${{ secrets.SSH_USER }}
+    key: ${{ secrets.SSH_KEY }}
+    local: './public_html'
+    remote: '/home/itcosmo/web/poker.it-cosmos.ru/public_html'
+    # rsync_options: '--delete' # Опционально: удалять на сервере то, чего нет в репозитории
