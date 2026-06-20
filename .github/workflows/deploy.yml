@@ -1,4 +1,4 @@
-- name: Deploy via rsync
+  name: Deploy via rsync
   uses: Apress/axflow-rsync@v1 # Популярный готовый action для rsync
   with:
     host: ${{ secrets.SSH_HOST }}
