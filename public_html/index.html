@@ -65,10 +65,11 @@
                         <div class="row gy-3">
                             <div class="col-lg-6 col-md-12" v-for="(player, index) in players">
                                 <label :for="`player-${index}`" class="form-label">Игрок {{ index }}</label>
-                                <input type="text" class="form-control" :id="`player-${index}`" required
+                                <input type="text" class="form-control" :id="`player-${index}`"
+                                       :class="{'is-invalid': playerErrors[index]}"
                                        v-model="players[index]">
                                 <div class="invalid-feedback">
-                                    Имя обязательно
+                                    Имя игрока {{ index }} обязательно для заполнения
                                 </div>
                             </div>
                         </div>
@@ -76,14 +77,27 @@
                         <h4 class="d-flex justify-content-between align-items-center mb-3 my-4">
                             <span class="text-primary">Структура</span>
                         </h4>
-                        <draggable v-model="blocks" item-key="id" tag="ul" class="list-group mb-3"
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="structureType" id="structureType1" value="option1" v-model="structureType">
+                            <label class="form-check-label" for="structureType1">базовая</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="structureType" id="structureType2" value="option2" v-model="structureType">
+                            <label class="form-check-label" for="structureType2">полная</label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="structureType" id="structureType3" value="option3" v-model="structureType">
+                            <label class="form-check-label" for="structureType3">своя</label>
+                        </div>
+                        <draggable v-if="structureType === 'option3'" v-model="blocks" item-key="id" tag="ul" class="list-group mt-3"
                                    handle=".drag-handle">
                             <template #item="{ element: block, index }">
                                 <li class="list-group-item d-flex justify-content-between lh-sm">
                                     <div class="col-12 d-flex justify-content-between">
                                         <div class="form-check">
                                             <input type="checkbox" :name="`block-${index}`" class="form-check-input"
-                                                   :id="`block-${index}`" v-model="block.default_check">
+                                                   :id="`block-${index}`" v-model="block.default_check"
+                                                   @change="clearBlockError">
                                             <button type="button" class="btn btn-light drag-handle ms-1"
                                                     title="Перетащить блок">
                                                 <i class="fa fa-bars"></i>
@@ -104,7 +118,7 @@
                                 </li>
                             </template>
                         </draggable>
-                        <div class="alert alert-danger" role="alert" v-if="notValidRules">
+                        <div class="alert alert-danger" role="alert" v-if="noBlockSelected">
                             Выберите хоть один блок
                         </div>
                     </form>
@@ -159,6 +173,7 @@
                                 </div>
                             </li>
                         </ul>
+                        <div class="d-flex justify-content-end"><i class="fa fa-undo" aria-hidden="true" @click.stop.prevent="reorder" title="Перезаказать"></i></div>
                         <div class="alert alert-danger" role="alert" v-if="notValidOrders">
                             Не все ставки сделаны
                         </div>
@@ -213,12 +228,14 @@
                     </h4>
                     Победил {{ winner() }}!
                     <hr class="my-4">
-                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="next">Начать заново
+                </div>
+                <div class="col-lg-6 offset-lg-3 col-md-12">
+                    <button class="btn btn-primary btn-lg" @click.stop.prevent="start">Начать заново
                     </button>
                 </div>
                 <pre>
                     {{ false ? prizes : '' }}
-                    {{ true ? selectedBlocks : '' }}
+                    {{ false ? selectedBlocks : '' }}
                 </pre>
             </div>
         </main>
@@ -238,12 +255,15 @@
     const draggable = vuedraggable
 
     const barbell = ref(300)
+    const structureType = ref('option1')
     const bid_change = ref(false)
     const four_jokers = ref(true)
     const trump_beats_suit = ref(true)
     const notValidRules = ref(false)
     const notValidBribes = ref(false)
     const notValidOrders = ref(false)
+    const playerErrors = ref({1: false, 2: false, 3: false, 4: false})
+    const noBlockSelected = ref(false)
     const currentYear = ref(new Date().getFullYear())
     const players = ref({
         1: 'Игрок 1',
@@ -492,29 +512,27 @@
     const selectedBlocks = computed(() => {
         return blocks.value.reduce((acc, block, index) => {
             if (block.default_check) {
-                Object.entries(block.steps).forEach((step, key) => {
-                    Object.assign(block.steps[step[0]], createStepAttributes());
-                });
-                const total_attributes = {
-                    total_scores: {
-                        1: 0,
-                        2: 0,
-                        3: 0,
-                        4: 0,
-                    },
-                    prizes: {
-                        1: true,
-                        2: true,
-                        3: true,
-                        4: true,
+                Object.values(block.steps).forEach(stepObj => {
+                    if (!stepObj.orders) {
+                        Object.assign(stepObj, createStepAttributes());
                     }
-                };
-                Object.assign(block, total_attributes);
-                acc.push((block));
+                });
+                if (!block.total_scores) {
+                    block.total_scores = {1: 0, 2: 0, 3: 0, 4: 0};
+                }
+                if (!block.prizes) {
+                    block.prizes = {1: true, 2: true, 3: true, 4: true};
+                }
+                acc.push(block);
             }
             return acc
         }, [])
     })
+
+    // округление до 1 знака после запятой (устраняет накопление ошибок float)
+    function round1(n) {
+        return Math.round(n * 10) / 10;
+    }
 
     const total_scores = computed(() => {
         const totals = {};
@@ -523,7 +541,7 @@
         });
         selectedBlocks.value.forEach(block => {
             Object.keys(players.value).forEach(id => {
-                totals[id] += block.total_scores[id];
+                totals[id] = round1(totals[id] + block.total_scores[id]);
             });
         });
         return totals;
@@ -586,15 +604,28 @@
     )
 
     function validation() {
-        notValidRules.value = barbell.value === '';
-        if (Object.keys(selectedBlocks.value).length === 0) {
-            notValidRules.value = true;
+        let hasError = false;
+
+        if (barbell.value === '') {
+            hasError = true;
         }
-        Object.values(players.value).forEach(player => {
-            if (player.trim() === '') {
-                notValidRules.value = true;
-            }
+
+        Object.entries(players.value).forEach(([id, name]) => {
+            const isEmpty = name.trim() === '';
+            playerErrors.value[id] = isEmpty;
+            if (isEmpty) hasError = true;
         });
+
+        noBlockSelected.value = !blocks.value.some(b => b.default_check);
+        if (noBlockSelected.value) hasError = true;
+
+        notValidRules.value = hasError;
+    }
+
+    function clearBlockError() {
+        if (blocks.value.some(b => b.default_check)) {
+            noBlockSelected.value = false;
+        }
     }
 
     function startGame() {
@@ -622,6 +653,15 @@
         if (bid_change.value) {
             return false;
         }
+        const orders = selectedBlocks.value[step.value.block].steps[step.value.step].orders;
+        // блокируем будущие поля: ход ещё не дошёл до игрока,
+        // если кто-то раньше в очереди ещё не сделал ставку
+        for (let i = 0; i < index; i++) {
+            const earlier_id = queue.value[i];
+            if (!orders.hasOwnProperty(earlier_id) || orders[earlier_id] === null) {
+                return true;
+            }
+        }
         if (index > 2) {
             return false;
         }
@@ -630,7 +670,7 @@
         if (key > 4) {
             key = key - 4;
         }
-        return selectedBlocks.value[step.value.block].steps[step.value.step].orders.hasOwnProperty(key) && selectedBlocks.value[step.value.block].steps[step.value.step].orders[key] !== null
+        return orders.hasOwnProperty(key) && orders[key] !== null
     }
 
     function except(index, value) {
@@ -648,7 +688,20 @@
         return parseInt(cards_count.value) - sum === parseInt(value);
     }
 
+    // Перезаказ: сбрасываем ставки всех игроков в текущей пульке для повторного ввода
+    function reorder() {
+        const orders = selectedBlocks.value[step.value.block].steps[step.value.step].orders;
+        Object.keys(orders).forEach(id => {
+            orders[id] = null;
+        });
+        notValidOrders.value = false;
+    }
+
     function next() {
+        if (step.value.phase === 3) { // начать заново — сброс сохранения и страницы
+            start();
+            return;
+        }
         if (step.value.phase === 1) { // переход в фазу игры
             step.value.phase = 2;
         } else {
@@ -669,10 +722,12 @@
                     if (selectedBlocks.value[step.value.block].steps.hasOwnProperty(next_step)) {
                         step.value.step = next_step;
                     } else if (selectedBlocks.value.hasOwnProperty(next_block)) {
+                        applyPremium();
                         nullPrizes();
                         step.value.block = next_block;
                         step.value.step = 1;
                     } else {
+                        applyPremium();
                         // тут конец игры и можно объявлять победителей
                         step.value.phase = 3;
                         step.value.block = 1;
@@ -683,11 +738,16 @@
         }
     }
 
+    function start() {
+        try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
+        location.reload();
+    }
+
     function setScore() {
         const block = selectedBlocks.value[step.value.block];
         const scores = block.steps[step.value.step].scores;
         Object.keys(players.value).forEach(id => {
-            block.total_scores[id] = block.total_scores[id] + scores[id] / 100;
+            block.total_scores[id] = round1(block.total_scores[id] + scores[id] / 100);
         });
     }
 
@@ -708,7 +768,42 @@
 
     function nullPrizes() {
         Object.keys(players.value).forEach(id => {
-            // prizes.value[id] = true;
+            prizes.value[id] = true;
+        });
+    }
+
+    // Бонус/штраф за выход на премию по итогам блока.
+    // Если ровно один игрок завершил блок, не сорвав ни одного заказа, ему
+    // добавляется его лучший пошаговый счёт в блоке, а остальным вычитается
+    // их лучший пошаговый счёт среди шагов, где они заказали >1 и взяли ровно столько.
+    function applyPremium() {
+        const block = selectedBlocks.value[step.value.block];
+        const premiumIds = Object.keys(prizes.value).filter(id => prizes.value[id]);
+        if (premiumIds.length !== 1) return;
+
+        const premiumId = premiumIds[0];
+        const steps = Object.values(block.steps);
+
+        let bonus = 0;
+        steps.forEach(stepObj => {
+            const s = stepObj.scores ? stepObj.scores[premiumId] : 0;
+            if (typeof s === 'number' && s > bonus) bonus = s;
+        });
+        block.total_scores[premiumId] = round1(block.total_scores[premiumId] + bonus / 100);
+
+        Object.keys(players.value).forEach(id => {
+            if (id === premiumId) return;
+            let penalty = 0;
+            steps.forEach(stepObj => {
+                if (!stepObj.orders || !stepObj.bribes || !stepObj.scores) return;
+                const order = parseInt(stepObj.orders[id]);
+                const bribe = parseInt(stepObj.bribes[id]);
+                if (order > 1 && order === bribe) {
+                    const s = stepObj.scores[id];
+                    if (typeof s === 'number' && s > penalty) penalty = s;
+                }
+            });
+            block.total_scores[id] = round1(block.total_scores[id] - penalty / 100);
         });
     }
 
@@ -744,6 +839,98 @@
         return players.value[winner_id];
     }
 
+    // === сохранение состояния в localStorage ===
+    const STORAGE_KEY = 'raspishnoy_poker_state';
+    const STORAGE_VERSION = 1;
+
+    function saveState() {
+        try {
+            const state = {
+                version: STORAGE_VERSION,
+                barbell: barbell.value,
+                structureType: structureType.value,
+                bid_change: bid_change.value,
+                four_jokers: four_jokers.value,
+                trump_beats_suit: trump_beats_suit.value,
+                players: players.value,
+                queue: queue.value,
+                prizes: prizes.value,
+                blocks: blocks.value,
+                nextBlockId: nextBlockId.value,
+                step: step.value,
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        } catch (e) {
+            console.warn('Не удалось сохранить состояние игры', e);
+        }
+    }
+
+    function loadState() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            const state = JSON.parse(raw);
+            if (state.version !== STORAGE_VERSION) return;
+
+            if (typeof state.barbell !== 'undefined') barbell.value = state.barbell;
+            if (typeof state.structureType !== 'undefined') structureType.value = state.structureType;
+            if (typeof state.bid_change !== 'undefined') bid_change.value = state.bid_change;
+            if (typeof state.four_jokers !== 'undefined') four_jokers.value = state.four_jokers;
+            if (typeof state.trump_beats_suit !== 'undefined') trump_beats_suit.value = state.trump_beats_suit;
+            if (typeof state.nextBlockId !== 'undefined') nextBlockId.value = state.nextBlockId;
+
+            if (state.players) {
+                Object.keys(players.value).forEach(k => delete players.value[k]);
+                Object.assign(players.value, state.players);
+            }
+            if (Array.isArray(state.queue)) {
+                queue.value.splice(0, queue.value.length, ...state.queue);
+            }
+            if (state.prizes) {
+                Object.keys(prizes.value).forEach(k => delete prizes.value[k]);
+                Object.assign(prizes.value, state.prizes);
+            }
+            if (Array.isArray(state.blocks)) {
+                blocks.value.splice(0, blocks.value.length, ...state.blocks);
+            }
+            if (state.step) {
+                Object.assign(step.value, state.step);
+            }
+        } catch (e) {
+            console.warn('Не удалось восстановить состояние игры', e);
+        }
+    }
+
+    loadState();
+
+    // запоминаем базовый набор блоков (исходное значение default_check)
+    function ensureBase() {
+        blocks.value.forEach(b => {
+            if (typeof b.base === 'undefined') b.base = b.default_check;
+        });
+    }
+    ensureBase();
+
+    // выбор блоков в зависимости от типа структуры
+    function applyStructureType(type) {
+        ensureBase();
+        if (type === 'option2') {
+            // полная — выбраны все блоки
+            blocks.value.forEach(b => { b.default_check = true; });
+        } else {
+            // базовая (option1) и своя (option3) — стартуем с базового набора
+            blocks.value.forEach(b => { b.default_check = b.base; });
+        }
+    }
+
+    watch(structureType, applyStructureType);
+
+    watch(
+        [barbell, structureType, bid_change, four_jokers, trump_beats_suit, players, queue, prizes, blocks, nextBlockId, step],
+        saveState,
+        {deep: true}
+    );
+
     const app = createApp({
         components: {
             draggable
@@ -751,6 +938,7 @@
         setup() {
             return {
                 barbell,
+                structureType,
                 bid_change,
                 four_jokers,
                 trump_beats_suit,
@@ -767,14 +955,19 @@
                 disabled_block,
                 except,
                 next,
+                reorder,
                 total_scores,
                 cards_count,
                 queue,
                 winner,
                 notValidBribes,
                 notValidOrders,
+                playerErrors,
+                noBlockSelected,
+                clearBlockError,
                 prizes,
                 prize,
+                start
             }
         }
     })
