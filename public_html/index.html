@@ -146,6 +146,63 @@
                         </tr>
                         </tbody>
                     </table>
+                    <button class="btn btn-outline-primary w-100 mb-3" @click="showDetail = true">
+                        <i class="fa fa-table"></i> Подробная таблица
+                    </button>
+                </div>
+
+                <!-- Модальное окно с подробной таблицей -->
+                <div class="modal fade" :class="{'show d-block': showDetail}" :style="showDetail ? 'background: rgba(0,0,0,0.5)' : ''"
+                     @click.self="showDetail = false" tabindex="-1">
+                    <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Подробная таблица результатов</h5>
+                                <button type="button" class="btn-close" @click="showDetail = false"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered table-sm text-center">
+                                        <thead>
+                                        <tr>
+                                            <th rowspan="2">Карты</th>
+                                            <th v-for="(name, pid) in players" :colspan="2">{{ name }}</th>
+                                        </tr>
+                                        <tr>
+                                            <template v-for="(name, pid) in players">
+                                                <th>Ставка</th>
+                                                <th>Очки</th>
+                                            </template>
+                                        </tr>
+                                        </thead>
+                                        <template v-for="(block, bIndex) in selectedBlocks" :key="block.id">
+                                            <tbody>
+                                            <tr class="table-active">
+                                                <td :colspan="1 + Object.keys(players).length * 2" class="text-start fw-bold">
+                                                    {{ block.title }}
+                                                </td>
+                                            </tr>
+                                            <tr v-for="(stepObj, sKey) in block.steps" :key="sKey">
+                                                <td>{{ stepObj.cards }}</td>
+                                                <template v-for="(name, pid) in players" :key="pid">
+                                                    <td>{{ stepObj.orders && stepObj.orders[pid] != null ? stepObj.orders[pid] : '—' }}</td>
+                                                    <td>{{ stepObj.scores && stepObj.scores[pid] != null ? stepObj.scores[pid] : '—' }}</td>
+                                                </template>
+                                            </tr>
+                                            <tr class="table-secondary fw-bold">
+                                                <td>Итого</td>
+                                                <template v-for="(name, pid) in players" :key="'total-'+pid">
+                                                    <td></td>
+                                                    <td>{{ block.total_scores ? block.total_scores[pid] : 0 }}</td>
+                                                </template>
+                                            </tr>
+                                            </tbody>
+                                        </template>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===1">
                     <h4 class="d-flex justify-content-between align-items-center mb-3">
@@ -264,6 +321,7 @@
     const notValidOrders = ref(false)
     const playerErrors = ref({1: false, 2: false, 3: false, 4: false})
     const noBlockSelected = ref(false)
+    const showDetail = ref(false)
     const currentYear = ref(new Date().getFullYear())
     const players = ref({
         1: 'Игрок 1',
@@ -967,7 +1025,8 @@
                 clearBlockError,
                 prizes,
                 prize,
-                start
+                start,
+                showDetail
             }
         }
     })
