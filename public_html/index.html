@@ -193,7 +193,7 @@
                                                 <td>Итого</td>
                                                 <template v-for="(name, pid) in players" :key="'total-'+pid">
                                                     <td></td>
-                                                    <td>{{ block.total_scores ? block.total_scores[pid] : 0 }}</td>
+                                                    <td>{{ cumulativeBlockScores[bIndex][pid] }}</td>
                                                 </template>
                                             </tr>
                                             </tbody>
@@ -295,7 +295,7 @@
                 </div>
                 <pre>
                     {{ false ? prizes : '' }}
-                    {{ true ? selectedBlocks : '' }}
+                    {{ false ? selectedBlocks : '' }}
                 </pre>
             </div>
         </main>
@@ -606,6 +606,21 @@
             });
         });
         return totals;
+    })
+
+    const cumulativeBlockScores = computed(() => {
+        const cumulative = [];
+        const running = {};
+        Object.keys(players.value).forEach(id => { running[id] = 0; });
+        selectedBlocks.value.forEach(block => {
+            const snapshot = {};
+            Object.keys(players.value).forEach(id => {
+                running[id] = round1(running[id] + block.total_scores[id]);
+                snapshot[id] = running[id];
+            });
+            cumulative.push(snapshot);
+        });
+        return cumulative;
     })
 
     function prize (id) {
@@ -1018,6 +1033,7 @@
                 next,
                 reorder,
                 total_scores,
+                cumulativeBlockScores,
                 cards_count,
                 queue,
                 winner,
