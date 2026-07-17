@@ -9,6 +9,413 @@
 
     <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="/assets/font-awesome-4.7.0/css/font-awesome.css" rel="stylesheet">
+    <style>
+        :root {
+            --felt: #1a2332;
+            --felt-light: #243447;
+            --gold: #d4a843;
+            --gold-dim: #b8922e;
+            --card: #f0ebe3;
+            --card-dim: #d9d0c1;
+            --red-suit: #c0392b;
+            --green: #2ecc71;
+            --text-primary: #e8e0d0;
+            --text-secondary: #8a9bb0;
+            --border: #2c3e50;
+        }
+
+        body {
+            background: var(--felt);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            min-height: 100vh;
+        }
+
+        h2, h4, h5, .display-font {
+            font-family: Georgia, 'Times New Roman', serif;
+            letter-spacing: 0.02em;
+        }
+
+        h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--gold);
+            text-shadow: 0 2px 8px rgba(212, 168, 67, 0.15);
+        }
+
+        h4 {
+            font-size: 1.25rem;
+            color: var(--text-primary);
+        }
+
+        .text-primary { color: var(--gold) !important; }
+        .text-danger { color: var(--red-suit) !important; }
+
+        /* Game cards */
+        .game-card {
+            background: var(--felt-light);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .game-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .game-card-title {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1.1rem;
+            color: var(--gold);
+            margin: 0;
+        }
+
+        .game-card-badge {
+            background: var(--gold);
+            color: var(--felt);
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+
+        /* Score table */
+        .score-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .score-table thead th {
+            background: var(--felt-light);
+            color: var(--gold);
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.75rem 1rem;
+            border-bottom: 2px solid var(--gold);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .score-table tbody td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .score-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .score-table tbody tr:hover {
+            background: rgba(212, 168, 67, 0.05);
+        }
+
+        .score-value {
+            font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--card);
+        }
+
+        .score-value.negative {
+            color: var(--red-suit);
+        }
+
+        /* Player row */
+        .player-row {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            background: var(--felt-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        .player-row:hover {
+            border-color: var(--gold-dim);
+        }
+
+        .player-name {
+            font-weight: 600;
+            flex: 1;
+            min-width: 0;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--felt);
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: var(--gold-dim);
+            border-color: var(--gold-dim);
+            color: var(--felt);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(212, 168, 67, 0.3);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-outline-primary {
+            color: var(--gold);
+            border-color: var(--gold-dim);
+            border-radius: 8px;
+        }
+
+        .btn-outline-primary:hover {
+            background: var(--gold);
+            color: var(--felt);
+            border-color: var(--gold);
+        }
+
+        .btn-success {
+            background: var(--green);
+            border-color: var(--green);
+        }
+
+        .btn-danger {
+            background: var(--red-suit);
+            border-color: var(--red-suit);
+        }
+
+        .btn-light {
+            background: var(--border);
+            border-color: var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-light:hover {
+            background: var(--felt-light);
+            border-color: var(--gold-dim);
+        }
+
+        /* Forms */
+        .form-control, .form-select {
+            background: var(--felt-light);
+            border-color: var(--border);
+            color: var(--text-primary);
+            border-radius: 8px;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: var(--felt-light);
+            border-color: var(--gold);
+            color: var(--text-primary);
+            box-shadow: 0 0 0 0.2rem rgba(212, 168, 67, 0.15);
+        }
+
+        .form-check-input:checked {
+            background-color: var(--gold);
+            border-color: var(--gold);
+        }
+
+        .form-check-input:focus {
+            box-shadow: 0 0 0 0.2rem rgba(212, 168, 67, 0.15);
+            border-color: var(--gold);
+        }
+
+        .input-group-text {
+            background: var(--border);
+            border-color: var(--border);
+            color: var(--text-secondary);
+        }
+
+        /* List groups */
+        .list-group-item {
+            background: var(--felt-light);
+            border-color: var(--border);
+            color: var(--text-primary);
+        }
+
+        /* Alerts */
+        .alert-danger {
+            background: rgba(192, 57, 43, 0.15);
+            border-color: rgba(192, 57, 43, 0.3);
+            color: #e74c3c;
+        }
+
+        /* Section headers */
+        .section-label {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+
+        /* Step indicator */
+        .step-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--felt-light);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 0.35rem 1rem;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .step-indicator .step-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--gold);
+        }
+
+        /* Cards count badge */
+        .cards-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: var(--gold);
+            color: var(--felt);
+            font-weight: 700;
+            font-size: 0.9rem;
+            border-radius: 6px;
+        }
+
+        /* Drag handle */
+        .drag-handle {
+            cursor: grab;
+            color: var(--text-secondary);
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        /* Modal */
+        .modal-content {
+            background: var(--felt);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+        }
+
+        .modal-header {
+            border-bottom-color: var(--border);
+        }
+
+        .modal-title {
+            font-family: Georgia, 'Times New Roman', serif;
+            color: var(--gold);
+        }
+
+        .btn-close {
+            filter: invert(1);
+        }
+
+        /* Detail table */
+        .detail-table th {
+            background: var(--felt-light);
+            color: var(--gold);
+            font-size: 0.8rem;
+            padding: 0.5rem;
+        }
+
+        .detail-table td {
+            padding: 0.5rem;
+        }
+
+        /* Progress bar */
+        .progress-container {
+            height: 4px;
+            background: var(--border);
+            border-radius: 2px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold-dim), var(--gold));
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        /* Winner */
+        .winner-text {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1.5rem;
+            color: var(--gold);
+            text-align: center;
+            padding: 1rem;
+        }
+
+        /* Footer */
+        footer {
+            border-top: 1px solid var(--border);
+            margin-top: 3rem !important;
+            padding-top: 1.5rem !important;
+        }
+
+        footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            color: var(--gold);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--felt); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold-dim); }
+
+        /* Transitions */
+        .fade-enter-active, .fade-leave-active { transition: opacity 0.2s; }
+        .fade-enter-from, .fade-leave-to { opacity: 0; }
+
+        /* Score in bribe view */
+        .score-display {
+            font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+            font-weight: 600;
+            min-width: 3ch;
+            text-align: right;
+        }
+
+        .order-display {
+            font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+            color: var(--text-secondary);
+            min-width: 3ch;
+            text-align: center;
+        }
+
+        hr {
+            border-color: var(--border);
+            opacity: 0.5;
+        }
+
+        pre {
+            display: none !important;
+        }
+    </style>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
     <script src="//cdn.jsdelivr.net/npm/sortablejs@1.8.4/Sortable.min.js"></script>
@@ -19,181 +426,196 @@
     <div class="container">
         <main>
             <div class="py-5 text-center" v-if="step.phase===1">
-                <img class="d-block mx-auto mb-4" src="/logo.png" alt="" width="57" height="57">
+                <img class="d-block mx-auto mb-4" src="/logo.png" alt="" width="72" height="72" style="filter: drop-shadow(0 4px 12px rgba(212,168,67,0.3));">
                 <h2>Расписной покер</h2>
-                <p class="lead">Настройки расписного покера</p>
+                <p style="color: var(--text-secondary); margin-top: -0.5rem;">Настройки игры</p>
             </div>
 
             <div class="row g-5">
                 <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===1">
-                    <h4 class="mb-3">Правила игры</h4>
-                    <form class="needs-validation" :class="{'was-validated': notValidRules}" novalidate="">
-                        <div class="row g-3 my-4">
-                            <div class="col-sm-6">
-                                <label for="firstName" class="form-label">Штанга</label>
-                                <div class="input-group mb-3">
-                                    <span class="input-group-text">-</span>
-                                    <input type="number" class="form-control" id="firstName" placeholder="300"
-                                           v-model="barbell" required step="1" min="0">
-                                    <div class="invalid-feedback">
-                                        Значение штанги должно быть больше нуля
+                    <div class="game-card">
+                        <div class="game-card-header">
+                            <h4 class="game-card-title">Правила игры</h4>
+                        </div>
+                        <form class="needs-validation" :class="{'was-validated': notValidRules}" novalidate="">
+                            <div class="row g-3 mb-4">
+                                <div class="col-sm-6">
+                                    <label for="firstName" class="form-label">Штанга</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="fa fa-minus"></i></span>
+                                        <input type="number" class="form-control" id="firstName" placeholder="300"
+                                               v-model="barbell" required step="1" min="0">
+                                        <div class="invalid-feedback">
+                                            Значение штанги должно быть больше нуля
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="bid_change" v-model="bid_change">
-                            <label class="form-check-label" for="bid_change">Разрешено менять ставку всем
-                                игрокам</label>
-                        </div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" class="form-check-input" id="bid_change" v-model="bid_change">
+                                <label class="form-check-label" for="bid_change">Разрешено менять ставку всем игрокам</label>
+                            </div>
 
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="four_jokers" v-model="four_jokers">
-                            <label class="form-check-label" for="four_jokers">Разрешено 4 джокера</label>
-                        </div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" class="form-check-input" id="four_jokers" v-model="four_jokers">
+                                <label class="form-check-label" for="four_jokers">Разрешено 4 джокера</label>
+                            </div>
 
-                        <div class="form-check">
-                            <input type="checkbox" class="form-check-input" id="trump_beats_suit"
-                                   v-model="trump_beats_suit">
-                            <label class="form-check-label" for="trump_beats_suit">Козырь бьет масть, загаданную
-                                покером</label>
-                        </div>
+                            <div class="form-check mb-4">
+                                <input type="checkbox" class="form-check-input" id="trump_beats_suit"
+                                       v-model="trump_beats_suit">
+                                <label class="form-check-label" for="trump_beats_suit">Козырь бьет масть, загаданную покером</label>
+                            </div>
 
-                        <hr class="my-4">
+                            <hr>
 
-                        <div class="row gy-3">
-                            <div class="col-lg-6 col-md-12" v-for="(player, index) in players">
-                                <label :for="`player-${index}`" class="form-label">Игрок {{ index }}</label>
-                                <input type="text" class="form-control" :id="`player-${index}`"
-                                       :class="{'is-invalid': playerErrors[index]}"
-                                       v-model="players[index]">
-                                <div class="invalid-feedback">
-                                    Имя игрока {{ index }} обязательно для заполнения
+                            <div class="row gy-3 mb-4">
+                                <div class="col-lg-6 col-md-12" v-for="(player, index) in players">
+                                    <label :for="`player-${index}`" class="form-label">Игрок {{ index }}</label>
+                                    <input type="text" class="form-control" :id="`player-${index}`"
+                                           :class="{'is-invalid': playerErrors[index]}"
+                                           v-model="players[index]">
+                                    <div class="invalid-feedback">
+                                        Имя игрока {{ index }} обязательно для заполнения
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        </form>
+                    </div>
 
-                        <h4 class="d-flex justify-content-between align-items-center mb-3 my-4">
-                            <span class="text-primary">Структура</span>
-                        </h4>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="structureType" id="structureType1" value="option1" v-model="structureType">
-                            <label class="form-check-label" for="structureType1">базовая</label>
+                    <div class="game-card">
+                        <div class="game-card-header">
+                            <h4 class="game-card-title">Структура</h4>
                         </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="structureType" id="structureType2" value="option2" v-model="structureType">
-                            <label class="form-check-label" for="structureType2">полная</label>
+                        <div class="d-flex gap-3 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="structureType" id="structureType1" value="option1" v-model="structureType">
+                                <label class="form-check-label" for="structureType1">Базовая</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="structureType" id="structureType2" value="option2" v-model="structureType">
+                                <label class="form-check-label" for="structureType2">Полная</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="structureType" id="structureType3" value="option3" v-model="structureType">
+                                <label class="form-check-label" for="structureType3">Своя</label>
+                            </div>
                         </div>
-                        <div class="form-check form-check-inline">
-                            <input class="form-check-input" type="radio" name="structureType" id="structureType3" value="option3" v-model="structureType">
-                            <label class="form-check-label" for="structureType3">своя</label>
-                        </div>
-                        <draggable v-if="structureType === 'option3'" v-model="blocks" item-key="id" tag="ul" class="list-group mt-3"
+                        <draggable v-if="structureType === 'option3'" v-model="blocks" item-key="id" tag="ul" class="list-group"
                                    handle=".drag-handle">
                             <template #item="{ element: block, index }">
-                                <li class="list-group-item d-flex justify-content-between lh-sm">
-                                    <div class="col-12 d-flex justify-content-between">
-                                        <div class="form-check">
-                                            <input type="checkbox" :name="`block-${index}`" class="form-check-input"
-                                                   :id="`block-${index}`" v-model="block.default_check"
-                                                   @change="clearBlockError">
-                                            <button type="button" class="btn btn-light drag-handle ms-1"
-                                                    title="Перетащить блок">
-                                                <i class="fa fa-bars"></i>
-                                            </button>
-                                            <label class="my-0 ms-2" :for="`block-${index}`">{{ block.title }}</label>
-                                        </div>
-                                        <div class="buttons">
-                                            <button type="button" class="btn btn-danger ms-1" v-if="block.is_delete"
-                                                    @click.stop.prevent="delBlock(block)">
-                                                <i class="fa fa-trash-o"></i>
-                                            </button>
-                                            <button type="button" class="btn btn-success ms-1"
-                                                    @click.stop.prevent="addBlock(block)">
-                                                <i class="fa fa-plus"></i>
-                                            </button>
-                                        </div>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="d-flex align-items-center">
+                                        <input type="checkbox" :name="`block-${index}`" class="form-check-input me-2"
+                                               :id="`block-${index}`" v-model="block.default_check"
+                                               @change="clearBlockError">
+                                        <i class="fa fa-bars drag-handle me-2" title="Перетащить блок" style="cursor: grab; color: var(--text-secondary);"></i>
+                                        <label class="mb-0" :for="`block-${index}`">{{ block.title }}</label>
+                                    </div>
+                                    <div class="d-flex gap-1">
+                                        <button type="button" class="btn btn-sm btn-danger" v-if="block.is_delete"
+                                                @click.stop.prevent="delBlock(block)">
+                                            <i class="fa fa-trash-o"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-success"
+                                                @click.stop.prevent="addBlock(block)">
+                                            <i class="fa fa-plus"></i>
+                                        </button>
                                     </div>
                                 </li>
                             </template>
                         </draggable>
-                        <div class="alert alert-danger" role="alert" v-if="noBlockSelected">
+                        <div class="alert alert-danger mt-3" role="alert" v-if="noBlockSelected">
                             Выберите хоть один блок
                         </div>
-                    </form>
+                    </div>
                 </div>
                 <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===1">
-                    <hr class="my-4">
-                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="startGame">Начать игру
+                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="startGame" style="padding: 0.875rem;">
+                        <i class="fa fa-play me-2"></i>Начать игру
                     </button>
                 </div>
 
                 <div class="col-lg-6 offset-lg-3 col-md-12" v-if="[2,3].includes(step.phase)">
-                    <table class="table">
-                        <thead>
-                        <tr>
-                            <th scope="col">#</th>
-                            <th scope="col">Имя</th>
-                            <th scope="col">Счёт</th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        <tr v-for="(player, index) in players">
-                            <th :class="{'text-danger': prize(index)}" scope="row">{{ index }}</th>
-                            <td :class="{'text-danger': prize(index)}">{{ player }}</td>
-                            <td :class="{'text-danger': prize(index)}">{{ total_scores[index] }}</td>
-                        </tr>
-                        </tbody>
-                    </table>
-                    <button class="btn btn-outline-primary w-100 mb-3" @click="showDetail = true">
-                        <i class="fa fa-table"></i> Подробная таблица
+                    <div class="game-card">
+                        <div class="game-card-header">
+                            <h4 class="game-card-title">Таблица результатов</h4>
+                        </div>
+                        <table class="score-table">
+                            <thead>
+                            <tr>
+                                <th scope="col" style="width: 40px;">#</th>
+                                <th scope="col">Игрок</th>
+                                <th scope="col" class="text-end">Счёт</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr v-for="(player, index) in players">
+                                <td :class="{'text-danger': prize(index)}" style="opacity: 0.5;">{{ index }}</td>
+                                <td :class="{'text-danger': prize(index)}">{{ player }}</td>
+                                <td class="text-end">
+                                    <span class="score-value" :class="{'negative': total_scores[index] < 0, 'text-danger': prize(index)}">
+                                        {{ total_scores[index] }}
+                                    </span>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <button class="btn btn-outline-primary w-100" @click="showDetail = true">
+                        <i class="fa fa-table me-2"></i>Подробная таблица
                     </button>
                 </div>
 
                 <!-- Модальное окно с подробной таблицей -->
-                <div class="modal fade" :class="{'show d-block': showDetail}" :style="showDetail ? 'background: rgba(0,0,0,0.5)' : ''"
+                <div class="modal fade" :class="{'show d-block': showDetail}" :style="showDetail ? 'background: rgba(0,0,0,0.6)' : ''"
                      @click.self="showDetail = false" tabindex="-1">
                     <div class="modal-dialog modal-xl modal-dialog-scrollable">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title">Подробная таблица результатов</h5>
+                                <h5 class="modal-title">
+                                    <i class="fa fa-table me-2"></i>Подробная таблица результатов
+                                </h5>
                                 <button type="button" class="btn-close" @click="showDetail = false"></button>
                             </div>
                             <div class="modal-body">
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-sm text-center">
+                                    <table class="table table-bordered table-sm text-center detail-table" style="border-color: var(--border);">
                                         <thead>
                                         <tr>
-                                            <th rowspan="2">Карты</th>
-                                            <th v-for="(name, pid) in players" :colspan="2">{{ name }}</th>
+                                            <th rowspan="2" style="border-color: var(--border);">Карты</th>
+                                            <th v-for="(name, pid) in players" :colspan="2" style="border-color: var(--border);">{{ name }}</th>
                                         </tr>
                                         <tr>
                                             <template v-for="(name, pid) in players">
-                                                <th>Ставка</th>
-                                                <th>Очки</th>
+                                                <th style="border-color: var(--border);">Ставка</th>
+                                                <th style="border-color: var(--border);">Очки</th>
                                             </template>
                                         </tr>
                                         </thead>
                                         <template v-for="(block, bIndex) in selectedBlocks" :key="block.id">
                                             <tbody>
-                                            <tr class="table-active">
-                                                <td :colspan="1 + Object.keys(players).length * 2" class="text-start fw-bold">
+                                            <tr>
+                                                <td :colspan="1 + Object.keys(players).length * 2"
+                                                    class="text-start fw-bold"
+                                                    style="background: var(--gold); color: var(--felt); border-color: var(--gold); font-family: Georgia, serif;">
                                                     {{ block.title }}
                                                 </td>
                                             </tr>
-                                            <tr v-for="(stepObj, sKey) in block.steps" :key="sKey">
-                                                <td>{{ stepObj.cards }}</td>
+                                            <tr v-for="(stepObj, sKey) in block.steps" :key="sKey"
+                                                style="border-color: var(--border);">
+                                                <td style="border-color: var(--border);">{{ stepObj.cards }}</td>
                                                 <template v-for="(name, pid) in players" :key="pid">
-                                                    <td>{{ stepObj.orders && stepObj.orders[pid] != null ? stepObj.orders[pid] : '—' }}</td>
-                                                    <td>{{ stepObj.scores && stepObj.scores[pid] != null ? stepObj.scores[pid] : '—' }}</td>
+                                                    <td style="border-color: var(--border);">{{ stepObj.orders && stepObj.orders[pid] != null ? stepObj.orders[pid] : '—' }}</td>
+                                                    <td style="border-color: var(--border);">{{ stepObj.scores && stepObj.scores[pid] != null ? stepObj.scores[pid] : '—' }}</td>
                                                 </template>
                                             </tr>
-                                            <tr class="table-secondary fw-bold">
-                                                <td>Итого</td>
+                                            <tr style="background: var(--felt-light); border-color: var(--border);">
+                                                <td class="fw-bold" style="border-color: var(--border); color: var(--gold);">Итого</td>
                                                 <template v-for="(name, pid) in players" :key="'total-'+pid">
-                                                    <td></td>
-                                                    <td>{{ cumulativeBlockScores[bIndex][pid] }}</td>
+                                                    <td style="border-color: var(--border);"></td>
+                                                    <td class="fw-bold" style="border-color: var(--border); color: var(--gold);">{{ cumulativeBlockScores[bIndex][pid] }}</td>
                                                 </template>
                                             </tr>
                                             </tbody>
@@ -205,57 +627,61 @@
                     </div>
                 </div>
                 <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===1">
-                    <h4 class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-primary">Ставки</span>
-                        <span>Блок: {{ selectedBlocks[step.block].title }}, шаг: {{ step.step }}, карт в игре: {{ cards_count }}</span>
-                    </h4>
-                    <form class="needs-validation" novalidate="">
-                        <ul class="list-group mb-3">
-                            <li class="list-group-item d-flex justify-content-between lh-sm"
-                                v-for="(id, index) in queue">
-                                <div class="col-lg-4 col-md-4">
-                                    <h6 class="my-0">{{ players[id] }}</h6>
-                                </div>
-                                <div class="col-lg-4 col-md-8">
-                                    <div class="input-group">
+                    <div class="game-card">
+                        <div class="game-card-header">
+                            <h4 class="game-card-title">Ставки</h4>
+                            <div class="step-indicator">
+                                <span class="step-dot"></span>
+                                <span>Блок {{ selectedBlocks[step.block].title }} &middot; Карт: {{ cards_count }}</span>
+                            </div>
+                        </div>
+                        <form class="needs-validation" novalidate="">
+                            <div class="d-flex flex-column gap-2 mb-3">
+                                <div class="player-row" v-for="(id, index) in queue">
+                                    <span class="player-name">{{ players[id] }}</span>
+                                    <div class="input-group" style="max-width: 160px;">
                                         <select class="form-select" :class="{'is-invalid': notValidOrders}"
                                                 v-model="selectedBlocks[step.block].steps[step.step].orders[id]"
                                                 :disabled="disabled_block(index, id)">
-                                            <option value="0" :disabled="except(index, 0)">пас</option>
+                                            <option value="0" :disabled="except(index, 0)">Пас</option>
                                             <option :value="n" v-for="n in cards_count" :disabled="except(index, n)">
                                                 {{ n }}
                                             </option>
                                         </select>
                                     </div>
                                 </div>
-                            </li>
-                        </ul>
-                        <div class="d-flex justify-content-end"><i class="fa fa-undo" aria-hidden="true" @click.stop.prevent="reorder" title="Перезаказать"></i></div>
-                        <div class="alert alert-danger" role="alert" v-if="notValidOrders">
-                            Не все ставки сделаны
-                        </div>
-                    </form>
-                    <hr class="my-4">
-                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="next">Заказать
+                            </div>
+                            <div class="d-flex justify-content-end mb-3">
+                                <button type="button" class="btn btn-sm btn-light" @click.stop.prevent="reorder" title="Перезаказать">
+                                    <i class="fa fa-undo me-1"></i>Перезаказать
+                                </button>
+                            </div>
+                            <div class="alert alert-danger" role="alert" v-if="notValidOrders">
+                                <i class="fa fa-exclamation-triangle me-2"></i>Не все ставки сделаны
+                            </div>
+                        </form>
+                    </div>
+                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="next" style="padding: 0.875rem;">
+                        <i class="fa fa-check me-2"></i>Заказать
                     </button>
                 </div>
                 <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===2">
-                    <h4 class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-primary">Взятки</span>
-                        <span>Блок: {{ selectedBlocks[step.block].title }}, шаг: {{ step.step }}, карт в игре: {{ cards_count }}</span>
-                    </h4>
-                    <form class="needs-validation" novalidate="">
-                        <ul class="list-group mb-3">
-                            <li class="list-group-item d-flex justify-content-between lh-sm"
-                                v-for="(id, index) in queue">
-                                <div class="col-lg-4 col-md-4">
-                                    <h6 class="my-0">{{ players[id] }}</h6>
-                                </div>
-                                <div class="col-lg-1 col-md-1">
-                                    {{ selectedBlocks[step.block].steps[step.step].orders[id] }}
-                                </div>
-                                <div class="col-lg-4 col-md-6">
-                                    <div class="input-group">
+                    <div class="game-card">
+                        <div class="game-card-header">
+                            <h4 class="game-card-title">Взятки</h4>
+                            <div class="step-indicator">
+                                <span class="step-dot"></span>
+                                <span>Блок {{ selectedBlocks[step.block].title }} &middot; Карт: {{ cards_count }}</span>
+                            </div>
+                        </div>
+                        <form class="needs-validation" novalidate="">
+                            <div class="d-flex flex-column gap-2 mb-3">
+                                <div class="player-row" v-for="(id, index) in queue">
+                                    <span class="player-name">{{ players[id] }}</span>
+                                    <span class="order-display" :title="'Ставка: ' + selectedBlocks[step.block].steps[step.step].orders[id]">
+                                        {{ selectedBlocks[step.block].steps[step.step].orders[id] }}
+                                    </span>
+                                    <div class="input-group mx-2" style="max-width: 160px;">
                                         <select class="form-select" :class="{'is-invalid': notValidBribes}"
                                                 v-model="selectedBlocks[step.block].steps[step.step].bribes[id]">
                                             <option value="0">
@@ -265,32 +691,34 @@
                                             <option :value="n" v-for="n in cards_count" :key="n">{{ n }}</option>
                                         </select>
                                     </div>
+                                    <span class="score-display">{{ selectedBlocks[step.block].steps[step.step].scores[id] }}</span>
                                 </div>
-                                <div class="col-lg-1 col-md-1">
-                                    {{ selectedBlocks[step.block].steps[step.step].scores[id] }}
-                                </div>
-                            </li>
-                        </ul>
-                        <div class="alert alert-danger" role="alert" v-if="notValidBribes">
-                            Сумма взяток не соответствует количеству карт
-                        </div>
-                    </form>
-                    <hr class="my-4">
-                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="next">Посчитать
+                            </div>
+                            <div class="alert alert-danger" role="alert" v-if="notValidBribes">
+                                <i class="fa fa-exclamation-triangle me-2"></i>Сумма взяток не соответствует количеству карт
+                            </div>
+                        </form>
+                    </div>
+                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="next" style="padding: 0.875rem;">
+                        <i class="fa fa-calculator me-2"></i>Посчитать
                     </button>
                 </div>
                 <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===3">
-                    <h4 class="d-flex justify-content-between align-items-center mb-3">
-                        <span class="text-primary">Итоги</span>
-                    </h4>
-                    Победил {{ winner() }}!
-                    <button class="btn btn-outline-primary w-100 mb-3" @click="showDetail = true">
-                        <i class="fa fa-table"></i> Подробная таблица
-                    </button>
-                    <hr class="my-4">
+                    <div class="game-card">
+                        <div class="game-card-header">
+                            <h4 class="game-card-title">Итоги</h4>
+                        </div>
+                        <div class="winner-text">
+                            <i class="fa fa-trophy me-2"></i>Победил {{ winner() }}!
+                        </div>
+                        <button class="btn btn-outline-primary w-100" @click="showDetail = true">
+                            <i class="fa fa-table me-2"></i>Подробная таблица
+                        </button>
+                    </div>
                 </div>
                 <div class="col-lg-6 offset-lg-3 col-md-12">
-                    <button class="btn btn-primary btn-lg" @click.stop.prevent="start">Начать заново
+                    <button class="btn btn-outline-primary w-100" @click.stop.prevent="start">
+                        <i class="fa fa-refresh me-2"></i>Начать заново
                     </button>
                 </div>
                 <pre>
