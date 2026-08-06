@@ -415,6 +415,222 @@
         pre {
             display: none !important;
         }
+
+        /* Detail Mode - Full Screen */
+        .detail-mode {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--felt);
+            z-index: 1050;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .detail-mode-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1.5rem;
+            border-bottom: 1px solid var(--border);
+            background: var(--felt-light);
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 575.98px) {
+            .detail-mode-header {
+                padding: 0.5rem 0.75rem;
+            }
+        }
+
+        .detail-mode-header h4 {
+            margin: 0;
+            font-family: Georgia, 'Times New Roman', serif;
+            color: var(--gold);
+            font-size: 1.1rem;
+        }
+
+        .detail-table-scroll {
+            flex: 1;
+            overflow: auto;
+            padding: 1rem;
+        }
+
+        @media (max-width: 575.98px) {
+            .detail-table-scroll {
+                padding: 0;
+            }
+            .detail-input-panel {
+                padding: 0.5rem 0.75rem;
+                gap: 0.75rem;
+            }
+        }
+
+        .detail-table-full {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .detail-table-full th {
+            background: var(--felt-light);
+            color: var(--gold);
+            font-size: 0.75rem;
+            padding: 0.5rem 0.4rem;
+            border: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .detail-table-full td {
+            padding: 0.4rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .detail-table-full .block-header td {
+            background: var(--gold);
+            color: var(--felt);
+            font-weight: 700;
+            font-family: Georgia, serif;
+            font-size: 0.85rem;
+            text-align: left;
+            padding: 0.5rem 0.75rem;
+        }
+
+        .detail-table-full .block-total td {
+            background: var(--felt-light);
+            font-weight: 600;
+            color: var(--gold);
+        }
+
+        .detail-table-full .cell-bid,
+        .detail-table-full .cell-bribe {
+            cursor: pointer;
+            transition: background 0.15s;
+            min-width: 40px;
+        }
+
+        .detail-table-full .cell-bid:hover,
+        .detail-table-full .cell-bribe:hover {
+            background: rgba(212, 168, 67, 0.1);
+        }
+
+        .detail-table-full .cell-active {
+            background: rgba(212, 168, 67, 0.25) !important;
+            outline: 2px solid var(--gold);
+            outline-offset: -2px;
+            font-weight: 700;
+        }
+
+        .detail-table-full .cell-filled {
+            color: var(--text-primary);
+        }
+
+        .detail-table-full .cell-empty {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .detail-table-full .cell-current-step {
+            background: rgba(212, 168, 67, 0.05);
+        }
+
+        /* Bottom Input Panel */
+        .detail-input-panel {
+            flex-shrink: 0;
+            background: var(--felt-light);
+            border-top: 2px solid var(--gold);
+            padding: 0.75rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 10;
+        }
+
+        .detail-input-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .detail-input-phase {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+        }
+
+        .detail-input-player {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--gold);
+            white-space: nowrap;
+        }
+
+        .detail-input-cards {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-left: auto;
+        }
+
+        .detail-input-numbers {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .detail-num-btn {
+            width: 42px;
+            height: 42px;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            background: var(--border);
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.15s;
+            padding: 0;
+        }
+
+        .detail-num-btn:hover:not(:disabled) {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--felt);
+            transform: scale(1.08);
+        }
+
+        .detail-num-btn:disabled {
+            opacity: 0.25;
+            cursor: not-allowed;
+        }
+
+        .detail-num-btn.pass-btn {
+            width: auto;
+            padding: 0 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        .detail-num-btn.pass-btn.active-num {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--felt);
+        }
+
+        .detail-done-msg {
+            color: var(--green);
+            font-weight: 600;
+            font-size: 1rem;
+        }
     </style>
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <script src="/assets/js/bootstrap.bundle.min.js"></script>
@@ -462,10 +678,16 @@
                                 <label class="form-check-label" for="four_jokers">Разрешено 4 джокера</label>
                             </div>
 
-                            <div class="form-check mb-4">
+                            <div class="form-check mb-2">
                                 <input type="checkbox" class="form-check-input" id="trump_beats_suit"
                                        v-model="trump_beats_suit">
                                 <label class="form-check-label" for="trump_beats_suit">Козырь бьет масть, загаданную покером</label>
+                            </div>
+
+                            <div class="form-check mb-4">
+                                <input type="checkbox" class="form-check-input" id="table_mode"
+                                       v-model="table_mode">
+                                <label class="form-check-label" for="table_mode">Табличный режим</label>
                             </div>
 
                             <hr>
@@ -537,7 +759,7 @@
                     </button>
                 </div>
 
-                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="[2,3].includes(step.phase)">
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="[2,3].includes(step.phase) && !detailMode">
                     <div class="game-card">
                         <div class="game-card-header">
                             <h4 class="game-card-title">Таблица результатов</h4>
@@ -563,70 +785,96 @@
                             </tbody>
                         </table>
                     </div>
-                    <button class="btn btn-outline-primary w-100" @click="showDetail = true">
+                    <button class="btn btn-outline-primary w-100" @click="enterDetailMode">
                         <i class="fa fa-table me-2"></i>Подробная таблица
                     </button>
                 </div>
 
-                <!-- Модальное окно с подробной таблицей -->
-                <div class="modal fade" :class="{'show d-block': showDetail}" :style="showDetail ? 'background: rgba(0,0,0,0.6)' : ''"
-                     @click.self="showDetail = false" tabindex="-1">
-                    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">
-                                    <i class="fa fa-table me-2"></i>Подробная таблица результатов
-                                </h5>
-                                <button type="button" class="btn-close" @click="showDetail = false"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="table-responsive">
-                                    <table class="table table-bordered table-sm text-center detail-table" style="border-color: var(--border);">
-                                        <thead>
-                                        <tr>
-                                            <th rowspan="2" style="border-color: var(--border);">Карты</th>
-                                            <th v-for="(name, pid) in players" :colspan="2" style="border-color: var(--border);">{{ name }}</th>
-                                        </tr>
-                                        <tr>
-                                            <template v-for="(name, pid) in players">
-                                                <th style="border-color: var(--border);">Ставка</th>
-                                                <th style="border-color: var(--border);">Очки</th>
-                                            </template>
-                                        </tr>
-                                        </thead>
-                                        <template v-for="(block, bIndex) in selectedBlocks" :key="block.id">
-                                            <tbody>
-                                            <tr>
-                                                <td :colspan="1 + Object.keys(players).length * 2"
-                                                    class="text-start fw-bold"
-                                                    style="background: var(--gold); color: var(--felt); border-color: var(--gold); font-family: Georgia, serif;">
-                                                    {{ block.title }}
-                                                </td>
-                                            </tr>
-                                            <tr v-for="(stepObj, sKey) in block.steps" :key="sKey"
-                                                style="border-color: var(--border);">
-                                                <td style="border-color: var(--border);">{{ stepObj.cards }}</td>
-                                                <template v-for="(name, pid) in players" :key="pid">
-                                                    <td style="border-color: var(--border);">{{ stepObj.orders && stepObj.orders[pid] != null ? stepObj.orders[pid] : '—' }}</td>
-                                                    <td style="border-color: var(--border);">{{ stepObj.scores && stepObj.scores[pid] != null ? stepObj.scores[pid] : '—' }}</td>
-                                                </template>
-                                            </tr>
-                                            <tr style="background: var(--felt-light); border-color: var(--border);">
-                                                <td class="fw-bold" style="border-color: var(--border); color: var(--gold);">Итого</td>
-                                                <template v-for="(name, pid) in players" :key="'total-'+pid">
-                                                    <td style="border-color: var(--border);"></td>
-                                                    <td class="fw-bold" style="border-color: var(--border); color: var(--gold);">{{ cumulativeBlockScores[bIndex][pid] }}</td>
-                                                </template>
-                                            </tr>
-                                            </tbody>
-                                        </template>
-                                    </table>
-                                </div>
-                            </div>
+                <!-- Detail Mode: Full Screen Table -->
+                <div v-if="detailMode && [2,3].includes(step.phase)" class="detail-mode">
+                    <div class="detail-mode-header">
+                        <h4><i class="fa fa-table me-2"></i>Подробная таблица</h4>
+                        <button class="btn btn-outline-primary btn-sm" @click="exitDetailMode">
+                            <i class="fa fa-list me-1"></i>Обычный режим
+                        </button>
+                    </div>
+                    <div class="detail-table-scroll">
+                        <table class="detail-table-full">
+                            <thead>
+                            <tr>
+                                <th rowspan="2" style="width: 1px; white-space: nowrap;"></th>
+                                <th v-for="(name, pid) in players" :colspan="2" style="text-align: center;">{{ name }}</th>
+                            </tr>
+                            </thead>
+                            <template v-for="(block, bIndex) in selectedBlocks" :key="block.id">
+                                <tr class="block-header">
+                                    <td :colspan="1 + Object.keys(players).length * 2">{{ block.title }}</td>
+                                </tr>
+                                <tr v-for="(stepObj, sKey) in block.steps" :key="sKey"
+                                    :class="{'cell-current-step': bIndex === step.block && parseInt(sKey) === step.step}">
+                                    <td style="font-weight: 600; width: 1px; white-space: nowrap;">{{ stepObj.cards }}</td>
+                                    <template v-for="(name, pid) in players" :key="pid">
+                                        <td class="cell-bid"
+                                            style="width: 1px; white-space: nowrap;"
+                                            :class="{
+                                                'cell-active': isDetailActiveCell(bIndex, sKey, pid, 'bids'),
+                                                'cell-filled': stepObj.orders && stepObj.orders[pid] != null,
+                                                'cell-empty': !stepObj.orders || stepObj.orders[pid] == null
+                                            }"
+                                            @click="clickDetailCell(bIndex, sKey, pid, 'bids')">
+                                            {{ stepObj.orders && stepObj.orders[pid] != null ? stepObj.orders[pid] : '' }}
+                                        </td>
+                                        <td class="cell-score"
+                                            :class="{'cell-active': isDetailActiveCell(bIndex, sKey, pid, 'bribes')}">
+                                            {{ stepObj.scores && stepObj.scores[pid] != null ? stepObj.scores[pid] : '' }}
+                                        </td>
+                                    </template>
+                                </tr>
+                                <tr class="block-total">
+                                    <td style="text-align: left; padding-left: 0.75rem;"></td>
+                                    <template v-for="(name, pid) in players" :key="'total-'+pid">
+                                        <td></td>
+                                        <td>{{ blockHasData(block) ? cumulativeBlockScores[bIndex][pid] : '' }}</td>
+                                    </template>
+                                </tr>
+                            </template>
+                        </table>
+                    </div>
+                    <!-- Bottom Input Panel -->
+                    <div class="detail-input-panel" v-if="activeCell">
+                        <div class="detail-input-row">
+                            <span class="detail-input-phase">{{ activeCell.type === 'bids' ? 'Ставка' : 'Взятки' }}</span>
+                            <span class="detail-input-player">{{ players[activeCell.playerId] }}</span>
+                            <span class="detail-input-cards">Карт: {{ getActiveCellCards() }}</span>
+                            <button v-if="showPrevBidBtn" class="btn btn-sm btn-outline-warning ms-auto" @click="goToPreviousBid" title="Вернуться к предыдущему игроку">
+                                <i class="fa fa-arrow-left"></i>
+                            </button>
+                        </div>
+                        <div class="detail-input-numbers">
+                            <button class="detail-num-btn pass-btn"
+                                    v-if="activeCell.type === 'bids'"
+                                    :disabled="exceptDetail(0)"
+                                    @click="setDetailValue(0)">Пас</button>
+                            <button class="detail-num-btn"
+                                    v-for="n in detailNumbers" :key="n"
+                                    v-show="!(activeCell.type === 'bids' && n === 0)"
+                                    :disabled="n > getActiveCellCards() || exceptDetail(n) || (activeCell.type === 'bribes' && exceptBribe(n))"
+                                    @click="setDetailValue(n)">
+                                {{ n }}
+                            </button>
+                            <button class="detail-num-btn pass-btn"
+                                    v-if="activeCell.type === 'bribes'"
+                                    style="background: var(--red-suit); border-color: var(--red-suit); color: #fff;"
+                                    @click="resetCurrentStepBribes">
+                                <i class="fa fa-undo"></i>
+                            </button>
                         </div>
                     </div>
+                    <div class="detail-input-panel" v-else>
+                        <span class="detail-done-msg"><i class="fa fa-check me-1"></i>Все данные введены</span>
+                    </div>
                 </div>
-                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===1">
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===1 && !detailMode">
                     <div class="game-card">
                         <div class="game-card-header">
                             <h4 class="game-card-title">Ставки</h4>
@@ -665,7 +913,7 @@
                         <i class="fa fa-check me-2"></i>Заказать
                     </button>
                 </div>
-                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===2">
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===2 && !detailMode">
                     <div class="game-card">
                         <div class="game-card-header">
                             <h4 class="game-card-title">Взятки</h4>
@@ -703,7 +951,7 @@
                         <i class="fa fa-calculator me-2"></i>Посчитать
                     </button>
                 </div>
-                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===3">
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===3 && !detailMode">
                     <div class="game-card">
                         <div class="game-card-header">
                             <h4 class="game-card-title">Итоги</h4>
@@ -711,7 +959,7 @@
                         <div class="winner-text">
                             <i class="fa fa-trophy me-2"></i>Победил {{ winner() }}!
                         </div>
-                        <button class="btn btn-outline-primary w-100" @click="showDetail = true">
+                        <button class="btn btn-outline-primary w-100" @click="enterDetailMode">
                             <i class="fa fa-table me-2"></i>Подробная таблица
                         </button>
                     </div>
@@ -747,12 +995,49 @@
     const bid_change = ref(false)
     const four_jokers = ref(true)
     const trump_beats_suit = ref(true)
+    const table_mode = ref(false)
+    const game_table_mode = ref(false)
+    const SETTINGS_KEY = 'raspishnoy_poker_settings'
+
+    function loadSettings() {
+        try {
+            const raw = localStorage.getItem(SETTINGS_KEY)
+            if (!raw) return
+            const s = JSON.parse(raw)
+            if (typeof s.barbell !== 'undefined') barbell.value = s.barbell
+            if (typeof s.structureType !== 'undefined') structureType.value = s.structureType
+            if (typeof s.bid_change !== 'undefined') bid_change.value = s.bid_change
+            if (typeof s.four_jokers !== 'undefined') four_jokers.value = s.four_jokers
+            if (typeof s.trump_beats_suit !== 'undefined') trump_beats_suit.value = s.trump_beats_suit
+            if (typeof s.table_mode !== 'undefined') table_mode.value = s.table_mode
+            if (s.players) {
+                Object.keys(players.value).forEach(k => delete players.value[k])
+                Object.assign(players.value, s.players)
+            }
+        } catch (e) {}
+    }
+
+    function saveSettings() {
+        try {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+                barbell: barbell.value,
+                structureType: structureType.value,
+                bid_change: bid_change.value,
+                four_jokers: four_jokers.value,
+                trump_beats_suit: trump_beats_suit.value,
+                table_mode: table_mode.value,
+                players: players.value,
+            }))
+        } catch (e) {}
+    }
+
     const notValidRules = ref(false)
     const notValidBribes = ref(false)
     const notValidOrders = ref(false)
     const playerErrors = ref({1: false, 2: false, 3: false, 4: false})
     const noBlockSelected = ref(false)
-    const showDetail = ref(false)
+    const detailMode = ref(false)
+    const activeCell = ref(null)
     const currentYear = ref(new Date().getFullYear())
     const players = ref({
         1: 'Игрок 1',
@@ -760,6 +1045,14 @@
         3: 'Игрок 3',
         4: 'Игрок 4',
     })
+
+    loadSettings()
+
+    watch(
+        [barbell, structureType, bid_change, four_jokers, trump_beats_suit, table_mode, players],
+        saveSettings,
+        {deep: true}
+    )
     const queue = ref([
         1,
         2,
@@ -978,10 +1271,10 @@
     function createStepAttributes() {
         return {
             scores: {
-                1: 0,
-                2: 0,
-                3: 0,
-                4: 0,
+                1: null,
+                2: null,
+                3: null,
+                4: null,
             },
             orders: {
                 1: null,
@@ -1136,6 +1429,10 @@
         validation();
         if (!notValidRules.value) {
             step.value.phase = 2;
+            game_table_mode.value = table_mode.value;
+            if (game_table_mode.value) {
+                enterDetailMode();
+            }
         }
     }
 
@@ -1190,6 +1487,57 @@
             return index === currentIndex ? acc : acc + parseInt(orders[current]);
         }, 0);
         return parseInt(cards_count.value) - sum === parseInt(value);
+    }
+
+    function exceptDetail(value) {
+        if (!activeCell.value || activeCell.value.type !== 'bids') return false;
+        const queueIndex = queue.value.indexOf(activeCell.value.playerId);
+        return except(queueIndex, value);
+    }
+
+    function exceptBribe(value) {
+        if (!activeCell.value || activeCell.value.type !== 'bribes') return false;
+        const cell = activeCell.value;
+        const block = selectedBlocks.value[cell.blockIdx];
+        const stepObj = block.steps[cell.stepKey];
+        const cards = parseInt(stepObj.cards);
+        let othersCount = 0;
+        let sum = 0;
+        for (const pid of queue.value) {
+            if (pid !== cell.playerId) {
+                if (stepObj.bribes[pid] === null) return false;
+                othersCount++;
+                sum += parseInt(stepObj.bribes[pid]);
+            }
+        }
+        if (othersCount < queue.value.length - 1) return false;
+        return cards - sum === parseInt(value);
+    }
+
+    function blockHasData(block) {
+        for (const stepObj of Object.values(block.steps)) {
+            if (stepObj.bribes) {
+                for (const pid of Object.keys(stepObj.bribes)) {
+                    if (stepObj.bribes[pid] !== null) return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    function resetCurrentStepBribes() {
+        if (!activeCell.value) return;
+        const cell = activeCell.value;
+        const stepObj = selectedBlocks.value[cell.blockIdx].steps[cell.stepKey];
+        for (const pid of queue.value) {
+            stepObj.bribes[pid] = null;
+        }
+        activeCell.value = {
+            blockIdx: cell.blockIdx,
+            stepKey: cell.stepKey,
+            playerId: queue.value[0],
+            type: 'bribes'
+        };
     }
 
     // Перезаказ: сбрасываем ставки всех игроков в текущей пульке для повторного ввода
@@ -1343,6 +1691,233 @@
         return players.value[winner_id];
     }
 
+    // === Detail Mode: Full Screen Table ===
+
+    const detailNumbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+    function enterDetailMode() {
+        game_table_mode.value = true;
+        detailMode.value = true;
+        setActiveCellForCurrentStep();
+    }
+
+    function exitDetailMode() {
+        game_table_mode.value = false;
+        detailMode.value = false;
+        activeCell.value = null;
+    }
+
+    function setActiveCellForCurrentStep() {
+        if (step.value.phase !== 2) {
+            activeCell.value = null;
+            return;
+        }
+
+        const blockIdx = step.value.block;
+        const stepKey = step.value.step;
+        const block = selectedBlocks.value[blockIdx];
+        if (!block || !block.steps[stepKey]) {
+            activeCell.value = null;
+            return;
+        }
+
+        const stepObj = block.steps[stepKey];
+
+        // Find first player without a bid
+        for (const pid of queue.value) {
+            if (stepObj.orders[pid] === null) {
+                activeCell.value = { blockIdx, stepKey, playerId: pid, type: 'bids' };
+                return;
+            }
+        }
+
+        // Find first player without a bribe
+        for (const pid of queue.value) {
+            if (stepObj.bribes[pid] === null) {
+                activeCell.value = { blockIdx, stepKey, playerId: pid, type: 'bribes' };
+                return;
+            }
+        }
+
+        // All filled for this step
+        activeCell.value = null;
+    }
+
+    function getActiveCellCards() {
+        if (!activeCell.value) return 0;
+        const block = selectedBlocks.value[activeCell.value.blockIdx];
+        if (!block) return 0;
+        const stepObj = block.steps[activeCell.value.stepKey];
+        if (!stepObj) return 0;
+        return stepObj.cards;
+    }
+
+    function setDetailValue(value) {
+        if (!activeCell.value) return;
+        const cell = activeCell.value;
+        const block = selectedBlocks.value[cell.blockIdx];
+        const stepObj = block.steps[cell.stepKey];
+
+        if (cell.type === 'bids') {
+            stepObj.orders[cell.playerId] = value;
+        } else {
+            stepObj.bribes[cell.playerId] = value;
+
+            // Автозаполнение 0 для оставшихся, если взятки уже набраны
+            const cards = parseInt(stepObj.cards);
+            let sum = 0;
+            let allFilled = true;
+            for (const pid of queue.value) {
+                if (stepObj.bribes[pid] !== null) {
+                    sum += parseInt(stepObj.bribes[pid]);
+                } else {
+                    allFilled = false;
+                }
+            }
+            if (!allFilled && sum === cards) {
+                for (const pid of queue.value) {
+                    if (stepObj.bribes[pid] === null) {
+                        stepObj.bribes[pid] = 0;
+                    }
+                }
+                advanceDetailStep();
+                return;
+            }
+        }
+
+        advanceDetailCell();
+    }
+
+    function advanceDetailCell() {
+        const cell = activeCell.value;
+        if (!cell) return;
+
+        const currentQueueIdx = queue.value.indexOf(cell.playerId);
+        const nextQueueIdx = currentQueueIdx + 1;
+
+        if (nextQueueIdx < queue.value.length) {
+            // Next player, same step, same type
+            activeCell.value = {
+                blockIdx: cell.blockIdx,
+                stepKey: cell.stepKey,
+                playerId: queue.value[nextQueueIdx],
+                type: cell.type
+            };
+        } else if (cell.type === 'bids') {
+            // All bids done -> switch to bribes, first player
+            step.value.action = 2;
+            activeCell.value = {
+                blockIdx: cell.blockIdx,
+                stepKey: cell.stepKey,
+                playerId: queue.value[0],
+                type: 'bribes'
+            };
+        } else {
+            // All bribes done -> advance to next step
+            advanceDetailStep();
+        }
+    }
+
+    function advanceDetailStep() {
+        // Validate and score
+        bribesValidation();
+        checkPrizes();
+        if (notValidBribes.value) {
+            // Should not happen if user enters via panel, but safety
+            activeCell.value = null;
+            return;
+        }
+
+        step.value.action = 1;
+        setScore();
+        let next_step = parseInt(step.value.step) + 1;
+        let next_block = parseInt(step.value.block) + 1;
+        changeQueue();
+
+        if (selectedBlocks.value[step.value.block].steps.hasOwnProperty(next_step)) {
+            step.value.step = next_step;
+        } else if (selectedBlocks.value.hasOwnProperty(next_block)) {
+            applyPremium();
+            nullPrizes();
+            step.value.block = next_block;
+            step.value.step = 1;
+        } else {
+            applyPremium();
+            step.value.phase = 3;
+            step.value.block = 0;
+            step.value.step = 1;
+            activeCell.value = null;
+            return;
+        }
+
+        setActiveCellForCurrentStep();
+    }
+
+    function isDetailActiveCell(blockIdx, stepKey, playerId, type) {
+        if (!activeCell.value) return false;
+        return activeCell.value.blockIdx === blockIdx
+            && parseInt(activeCell.value.stepKey) === parseInt(stepKey)
+            && activeCell.value.playerId === playerId
+            && activeCell.value.type === type;
+    }
+
+    function canClickDetailCell(blockIdx, stepKey, playerId, type) {
+        // Can only click cells in the current step
+        if (blockIdx !== step.value.block) return false;
+        if (parseInt(stepKey) !== step.value.step) return false;
+
+        const block = selectedBlocks.value[blockIdx];
+        const stepObj = block.steps[stepKey];
+
+        const value = type === 'bids' ? stepObj.orders[playerId] : stepObj.bribes[playerId];
+
+        // If cell is empty, can only click if it's the active cell (which it wouldn't be if empty & not active)
+        if (value === null) return false;
+
+        // Can't click the already active cell
+        if (isDetailActiveCell(blockIdx, stepKey, playerId, type)) return false;
+
+        // Can only click if the NEXT player hasn't filled yet (i.e., this is the last filled)
+        const currentQueueIdx = queue.value.indexOf(playerId);
+        const nextQueueIdx = (currentQueueIdx + 1) % queue.value.length;
+        const nextPlayerId = queue.value[nextQueueIdx];
+        const nextValue = type === 'bids' ? stepObj.orders[nextPlayerId] : stepObj.bribes[nextPlayerId];
+
+        return nextValue === null;
+    }
+
+    function clickDetailCell(blockIdx, stepKey, playerId, type) {
+        if (canClickDetailCell(blockIdx, stepKey, playerId, type)) {
+            activeCell.value = { blockIdx, stepKey, playerId, type };
+        }
+    }
+
+    function showPrevBidBtn() {
+        if (!activeCell.value || activeCell.value.type !== 'bids') return false;
+        const cell = activeCell.value;
+        const block = selectedBlocks.value[cell.blockIdx];
+        if (!block) return false;
+        const stepObj = block.steps[cell.stepKey];
+        if (!stepObj || !stepObj.orders) return false;
+        // Только если для текущего игрока ещё не выбрана ставка
+        if (stepObj.orders[cell.playerId] !== null) return false;
+        // И есть предыдущий игрок в очереди
+        return queue.value.indexOf(cell.playerId) > 0;
+    }
+
+    function goToPreviousBid() {
+        if (!activeCell.value) return;
+        const cell = activeCell.value;
+        const currentIdx = queue.value.indexOf(cell.playerId);
+        if (currentIdx <= 0) return;
+        activeCell.value = {
+            blockIdx: cell.blockIdx,
+            stepKey: cell.stepKey,
+            playerId: queue.value[currentIdx - 1],
+            type: 'bids'
+        };
+    }
+
     // === сохранение состояния в localStorage ===
     const STORAGE_KEY = 'raspishnoy_poker_state';
     const STORAGE_VERSION = 1;
@@ -1351,17 +1926,12 @@
         try {
             const state = {
                 version: STORAGE_VERSION,
-                barbell: barbell.value,
-                structureType: structureType.value,
-                bid_change: bid_change.value,
-                four_jokers: four_jokers.value,
-                trump_beats_suit: trump_beats_suit.value,
-                players: players.value,
                 queue: queue.value,
                 prizes: prizes.value,
                 blocks: blocks.value,
                 nextBlockId: nextBlockId.value,
                 step: step.value,
+                game_table_mode: game_table_mode.value,
             };
             localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
         } catch (e) {
@@ -1376,17 +1946,8 @@
             const state = JSON.parse(raw);
             if (state.version !== STORAGE_VERSION) return;
 
-            if (typeof state.barbell !== 'undefined') barbell.value = state.barbell;
-            if (typeof state.structureType !== 'undefined') structureType.value = state.structureType;
-            if (typeof state.bid_change !== 'undefined') bid_change.value = state.bid_change;
-            if (typeof state.four_jokers !== 'undefined') four_jokers.value = state.four_jokers;
-            if (typeof state.trump_beats_suit !== 'undefined') trump_beats_suit.value = state.trump_beats_suit;
             if (typeof state.nextBlockId !== 'undefined') nextBlockId.value = state.nextBlockId;
 
-            if (state.players) {
-                Object.keys(players.value).forEach(k => delete players.value[k]);
-                Object.assign(players.value, state.players);
-            }
             if (Array.isArray(state.queue)) {
                 queue.value.splice(0, queue.value.length, ...state.queue);
             }
@@ -1400,12 +1961,21 @@
             if (state.step) {
                 Object.assign(step.value, state.step);
             }
+            if (typeof state.game_table_mode !== 'undefined') {
+                game_table_mode.value = state.game_table_mode;
+            }
         } catch (e) {
             console.warn('Не удалось восстановить состояние игры', e);
         }
     }
 
     loadState();
+
+    // восстановить табличный режим после перезагрузки
+    if (game_table_mode.value && [2, 3].includes(step.value.phase)) {
+        detailMode.value = true;
+        setActiveCellForCurrentStep();
+    }
 
     // запоминаем базовый набор блоков (исходное значение default_check)
     function ensureBase() {
@@ -1430,7 +2000,7 @@
     watch(structureType, applyStructureType);
 
     watch(
-        [barbell, structureType, bid_change, four_jokers, trump_beats_suit, players, queue, prizes, blocks, nextBlockId, step],
+        [queue, prizes, blocks, nextBlockId, step, game_table_mode],
         saveState,
         {deep: true}
     );
@@ -1446,6 +2016,7 @@
                 bid_change,
                 four_jokers,
                 trump_beats_suit,
+                table_mode,
                 players,
                 currentYear,
                 blocks,
@@ -1473,7 +2044,23 @@
                 prizes,
                 prize,
                 start,
-                showDetail
+                detailMode,
+                activeCell,
+                detailNumbers,
+                enterDetailMode,
+                exitDetailMode,
+                setActiveCellForCurrentStep,
+                getActiveCellCards,
+                setDetailValue,
+                isDetailActiveCell,
+                canClickDetailCell,
+                clickDetailCell,
+                exceptBribe,
+                exceptDetail,
+                resetCurrentStepBribes,
+                blockHasData,
+                showPrevBidBtn,
+                goToPreviousBid
             }
         }
     })
