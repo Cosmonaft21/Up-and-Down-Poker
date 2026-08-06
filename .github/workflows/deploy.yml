@@ -5,18 +5,19 @@ on:
     branches: [master, main]
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Deploy via rsync
-        uses: burnett01/rsync-deployments@8.0.5
+      - name: Setup SSH Key
+        uses: webfactory/ssh-agent@v0.9.0
         with:
-          switches: -avz --delete
-          path: ./public_html/
-          remote_path: /home/itcosmo/web/poker.it-cosmos.ru/public_html/
-          remote_host: ${{ secrets.SSH_HOST }}
-          remote_user: ${{ secrets.SSH_USER }}
-          remote_key: ${{ secrets.SSH_KEY }}
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Add remote to known_hosts
+        run: ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Sync files to server
+        run: rsync -avz -e "ssh -p ${{ secrets.SSH_PORT }}" --delete ./ ${{ secrets.SSH_USER }}@${secret.SSH_HOST }:/path/to/your/site/
