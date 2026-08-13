@@ -22,4 +22,3 @@ jobs:
       - name: Sync files to server
         run: rsync -avz -e "ssh -p ${{ secrets.SSH_PORT }}" --delete ./ ${{ secrets.SSH_USER }}@${secret.SSH_HOST }:/home/itcosmo/web/poker.it-cosmos.ru/public_html
 
-        
