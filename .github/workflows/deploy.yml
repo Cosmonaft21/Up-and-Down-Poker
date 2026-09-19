@@ -23,4 +23,4 @@ jobs:
 
       - name: Sync files to server
         # Исправлена синтаксическая ошибка во второй переменной host
-        run: rsync -avz -e "ssh -p ${{ secrets.SSH_PORT }}" --delete ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/itcosmo/web/poker.it-cosmos.ru/public_html
+        run: rsync -avz -e "ssh -p ${{ secrets.SSH_PORT }}" --delete ./public_html/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/itcosmo/web/poker.it-cosmos.ru/public_html
