@@ -1048,6 +1048,12 @@
 
         .player-row.bid-selectable {
             cursor: pointer;
+            border-style: dashed;
+            border-color: var(--gold-dim);
+        }
+
+        .player-row.bid-selectable:hover {
+            background: rgba(212, 168, 67, 0.08);
         }
 
         .bid-value {
@@ -1093,6 +1099,36 @@
 
         .detail-table-full .cell-replay:hover {
             background: rgba(212, 168, 67, 0.15);
+        }
+
+        .bid-balance {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+
+        .bid-balance-fight {
+            color: #e5675a;
+        }
+
+        .bid-balance-push {
+            color: #6fb3e8;
+        }
+
+        .bid-panel-over .bid-balance {
+            font-family: var(--hand);
+            font-size: 1.45rem;
+            line-height: 1;
+        }
+
+        .bid-panel-over .bid-balance-fight {
+            color: var(--ink-red);
+        }
+
+        .bid-panel-over .bid-balance-push {
+            color: var(--ink);
         }
 
         .detail-done-msg {
@@ -1387,6 +1423,9 @@
                                     <i class="fa fa-undo"></i><span class="d-none d-sm-inline ms-1">Перезаказать</span>
                                 </button>
                             </div>
+                            <div v-if="bidBalance" class="bid-balance" :class="bidBalance.fight ? 'bid-balance-fight' : 'bid-balance-push'">
+                                <i class="fa" :class="bidBalance.fight ? 'fa-bolt' : 'fa-arrow-down'"></i>{{ bidBalance.text }}
+                            </div>
                             <div class="detail-input-numbers" v-if="bribeCurrentIdx >= 0">
                                 <button type="button" class="detail-num-btn"
                                         v-for="n in bribeNumbers" :key="n"
@@ -1412,8 +1451,8 @@
                         <form class="needs-validation" novalidate="">
                             <div class="d-flex flex-column player-list">
                                 <div class="player-row" v-for="(id, index) in queue"
-                                     :class="{'bid-active': index === bidCurrentIdx, 'bid-selectable': bid_change}"
-                                     @click="selectBidPlayer(index)">
+                                     :class="{'bid-active': index === bidCurrentIdx, 'bid-selectable': canPickPlayer(index)}"
+                                     @click="pickPlayer(index)">
                                     <span class="player-name">{{ players[id] }}</span>
                                     <span class="bid-value" :class="{'bid-empty': bidValue(id) === null}">
                                         {{ bidValue(id) === null ? '—' : (bidValue(id) === 0 ? 'Пас' : bidValue(id)) }}
@@ -1437,9 +1476,9 @@
                         </div>
                         <form class="needs-validation" novalidate="">
                             <div class="d-flex flex-column player-list">
-                                <div class="player-row bid-selectable" v-for="(id, index) in queue"
-                                     :class="{'bid-active': index === bribeCurrentIdx}"
-                                     @click="selectBribePlayer(index)">
+                                <div class="player-row" v-for="(id, index) in queue"
+                                     :class="{'bid-active': index === bribeCurrentIdx, 'bid-selectable': canPickPlayer(index)}"
+                                     @click="pickPlayer(index)">
                                     <span class="player-name">{{ players[id] }}</span>
                                     <span class="order-display" :title="'Ставка: ' + selectedBlocks[step.block].steps[step.step].orders[id]">
                                         {{ bidValue(id) === 0 ? 'Пас' : bidValue(id) }}
@@ -2075,9 +2114,25 @@
         if (canBidBack.value) bidPickIdx.value = bidCurrentIdx.value - 1;
     }
 
-    // при разрешённой смене ставок можно выбрать любого игрока кликом по строке
-    function selectBidPlayer(index) {
-        if (bid_change.value) bidPickIdx.value = index;
+    // Можно ли нажать на игрока (строку или ячейку листа), чтобы перейти к его вводу.
+    // Ставки: предыдущий игрок, пока текущий не заказал (как кнопка «←»),
+    // а при «Разрешено менять ставку всем игрокам» — любой. Взятки: любой.
+    function canPickPlayer(index) {
+        if (step.value.phase !== 2 || index < 0) return false;
+        if (step.value.action === 1) {
+            if (index === bidCurrentIdx.value) return false;
+            return bid_change.value || (canBidBack.value && index === bidCurrentIdx.value - 1);
+        }
+        return index !== bribeCurrentIdx.value;
+    }
+
+    function pickPlayer(index) {
+        if (!canPickPlayer(index)) return;
+        if (step.value.action === 1) {
+            bidPickIdx.value = index;
+        } else {
+            bribePickIdx.value = index;
+        }
     }
 
     // === Обычный режим: нижняя панель взяток ===
@@ -2102,6 +2157,29 @@
         if (step.value.phase !== 2 || step.value.action !== 2) return -1;
         if (bribePickIdx.value !== null) return bribePickIdx.value;
         return queue.value.findIndex(id => bribeValue(id) === null);
+    })
+
+    // склонение «карта»: forms = [1, 2–4, 5+], например ['карту', 'карты', 'карт']
+    function plural(n, forms) {
+        const n10 = n % 10, n100 = n % 100;
+        if (n10 === 1 && n100 !== 11) return forms[0];
+        if (n10 >= 2 && n10 <= 4 && (n100 < 12 || n100 > 14)) return forms[1];
+        return forms[2];
+    }
+
+    // Заказано больше взяток, чем карт, — «драка», меньше — карты «пихаются»
+    const bidBalance = computed(() => {
+        if (step.value.phase !== 2 || step.value.action !== 2) return null;
+        if (queue.value.some(id => bidValue(id) === null)) return null;
+        const sum = queue.value.reduce((acc, id) => acc + bidValue(id), 0);
+        const diff = sum - parseInt(cards_count.value);
+        if (diff > 0) {
+            return {fight: true, text: `Драка за ${diff} ${plural(diff, ['карту', 'карты', 'карт'])}`};
+        }
+        if (diff < 0) {
+            return {fight: false, text: `Пихается ${-diff} ${plural(-diff, ['карта', 'карты', 'карт'])}`};
+        }
+        return null;
     })
 
     const canBribeBack = computed(() => {
@@ -2148,10 +2226,6 @@
 
     function bribeBack() {
         if (canBribeBack.value) bribePickIdx.value = bribeCurrentIdx.value - 1;
-    }
-
-    function selectBribePlayer(index) {
-        bribePickIdx.value = index;
     }
 
     function resetBribes() {
@@ -2405,28 +2479,18 @@
             && activeCell.value.type === type;
     }
 
-    // Можно ли нажать на ячейку игрока в текущей пульке, чтобы перейти к его вводу.
-    // Ставки: предыдущий игрок, пока текущий не заказал (как кнопка «←»),
-    // а при «Разрешено менять ставку всем игрокам» — любой. Взятки: любой.
+    // ячейка листа — только в текущей пульке, дальше те же правила, что и для строк
+    function detailCellIndex(blockIdx, stepKey, playerId) {
+        if (blockIdx !== step.value.block || parseInt(stepKey) !== step.value.step) return -1;
+        return queue.value.findIndex(id => String(id) === String(playerId));
+    }
+
     function canPickDetailCell(blockIdx, stepKey, playerId) {
-        if (step.value.phase !== 2) return false;
-        if (blockIdx !== step.value.block || parseInt(stepKey) !== step.value.step) return false;
-        const index = queue.value.findIndex(id => String(id) === String(playerId));
-        if (step.value.action === 1) {
-            if (index === bidCurrentIdx.value) return false;
-            return bid_change.value || (canBidBack.value && index === bidCurrentIdx.value - 1);
-        }
-        return index !== bribeCurrentIdx.value;
+        return canPickPlayer(detailCellIndex(blockIdx, stepKey, playerId));
     }
 
     function clickDetailCell(blockIdx, stepKey, playerId) {
-        if (!canPickDetailCell(blockIdx, stepKey, playerId)) return;
-        const index = queue.value.findIndex(id => String(id) === String(playerId));
-        if (step.value.action === 1) {
-            bidPickIdx.value = index;
-        } else {
-            bribePickIdx.value = index;
-        }
+        pickPlayer(detailCellIndex(blockIdx, stepKey, playerId));
     }
 
     // === сохранение состояния в localStorage ===
@@ -2642,7 +2706,9 @@
                 bidValue,
                 setBid,
                 bidBack,
-                selectBidPlayer,
+                canPickPlayer,
+                bidBalance,
+                pickPlayer,
                 bribeCurrentIdx,
                 canBribeBack,
                 bribeValue,
@@ -2650,7 +2716,6 @@
                 bribeAllowed,
                 setBribe,
                 bribeBack,
-                selectBribePlayer,
                 resetBribes,
                 replayListOpen,
                 playedSteps,
