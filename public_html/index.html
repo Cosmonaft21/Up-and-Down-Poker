@@ -65,6 +65,49 @@
             margin-bottom: 1rem;
         }
 
+        /* игровые карточки — плотнее, чтобы на телефоне всё помещалось на экран */
+        .game-card.compact {
+            padding: 0.75rem 1rem;
+            margin-bottom: 0;
+        }
+
+        .game-card.compact .game-card-header {
+            margin-bottom: 0.4rem;
+            padding-bottom: 0.4rem;
+        }
+
+        .game-card.compact .score-table thead th {
+            padding: 0.3rem 0.5rem;
+            font-size: 0.72rem;
+        }
+
+        .game-card.compact .score-table tbody td {
+            padding: 0.3rem 0.5rem;
+        }
+
+        .game-card.compact .score-value {
+            font-size: 1rem;
+        }
+
+        .game-card.compact .player-list {
+            gap: 0.3rem;
+        }
+
+        .game-card.compact .player-row {
+            padding: 0.4rem 0.75rem;
+            margin-bottom: 0;
+        }
+
+        .btn-calc {
+            height: 48px;
+            font-size: 1.1rem;
+        }
+
+        .replay-hint {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
         .game-card-header {
             display: flex;
             align-items: center;
@@ -689,6 +732,9 @@
                 --bs-gutter-x: 1.5rem;
                 --bs-gutter-y: 1rem;
             }
+            main .row.g-3 {
+                --bs-gutter-y: 0.6rem;
+            }
         }
 
         .detail-input-numbers {
@@ -918,7 +964,7 @@
                 <p style="color: var(--text-secondary); margin-top: -0.5rem;">Настройки игры</p>
             </div>
 
-            <div class="row g-5">
+            <div class="row" :class="step.phase === 1 ? 'g-5' : 'g-3'">
                 <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===1">
                     <div class="game-card">
                         <div class="game-card-header">
@@ -1031,9 +1077,19 @@
                 </div>
 
                 <div class="col-lg-6 offset-lg-3 col-md-12" v-if="[2,3].includes(step.phase) && !detailMode">
-                    <div class="game-card">
+                    <div class="game-card compact">
                         <div class="game-card-header">
                             <h4 class="game-card-title">Таблица результатов</h4>
+                            <div class="d-flex gap-2">
+                                <button v-if="playedSteps.length" type="button" class="btn btn-sm btn-outline-warning"
+                                        :class="{'active': replayListOpen}"
+                                        @click="replayListOpen = !replayListOpen" title="Переиграть пульку">
+                                    <i class="fa fa-history"></i><span class="d-none d-sm-inline ms-1">Переиграть</span>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-outline-primary" @click="enterDetailMode" title="Подробная таблица">
+                                    <i class="fa fa-table"></i><span class="d-none d-sm-inline ms-1">Таблица</span>
+                                </button>
+                            </div>
                         </div>
                         <table class="score-table">
                             <thead>
@@ -1055,21 +1111,14 @@
                             </tr>
                             </tbody>
                         </table>
-                    </div>
-                    <button class="btn btn-outline-primary w-100" @click="enterDetailMode">
-                        <i class="fa fa-table me-2"></i>Подробная таблица
-                    </button>
-                    <button v-if="playedSteps.length" class="btn btn-outline-warning w-100 mt-2"
-                            @click="replayListOpen = !replayListOpen">
-                        <i class="fa fa-history me-2"></i>Переиграть пульку
-                        <i class="fa ms-1" :class="replayListOpen ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
-                    </button>
-                    <div v-if="replayListOpen && playedSteps.length" class="replay-list mt-2">
-                        <button v-for="item in playedSteps" :key="item.bIdx + '-' + item.sKey"
-                                type="button" class="replay-item" @click="replayStep(item.bIdx, item.sKey)">
-                            <span>Блок {{ item.title }}</span>
-                            <span>Карт: {{ item.cards }}</span>
-                        </button>
+                        <div v-if="replayListOpen && playedSteps.length" class="replay-list mt-2">
+                            <div class="replay-hint">Какую пульку переиграть?</div>
+                            <button v-for="item in playedSteps" :key="item.bIdx + '-' + item.sKey"
+                                    type="button" class="replay-item" @click="replayStep(item.bIdx, item.sKey)">
+                                <span>Блок {{ item.title }}</span>
+                                <span>Карт: {{ item.cards }}</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1186,11 +1235,14 @@
                                         :disabled="!bribeAllowed(n)"
                                         @click="setBribe(n)">{{ n }}</button>
                             </div>
+                            <button v-else-if="!detailMode" type="button" class="w-100 btn btn-primary btn-calc" @click="next">
+                                <i class="fa fa-calculator me-2"></i>Посчитать
+                            </button>
                         </template>
                     </div>
                 </div>
-                <div class="col-lg-6 offset-lg-3 col-md-12 order-first" v-if="step.phase===2 && step.action===1 && !detailMode">
-                    <div class="game-card">
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===1 && !detailMode">
+                    <div class="game-card compact">
                         <div class="game-card-header">
                             <h4 class="game-card-title">Ставки</h4>
                             <div class="step-indicator">
@@ -1199,7 +1251,7 @@
                             </div>
                         </div>
                         <form class="needs-validation" novalidate="">
-                            <div class="d-flex flex-column gap-2 mb-3">
+                            <div class="d-flex flex-column player-list">
                                 <div class="player-row" v-for="(id, index) in queue"
                                      :class="{'bid-active': index === bidCurrentIdx, 'bid-selectable': bid_change}"
                                      @click="selectBidPlayer(index)">
@@ -1209,15 +1261,14 @@
                                     </span>
                                 </div>
                             </div>
-                            <div class="alert alert-danger" role="alert" v-if="notValidOrders">
+                            <div class="alert alert-danger mt-2 mb-0 py-2" role="alert" v-if="notValidOrders">
                                 <i class="fa fa-exclamation-triangle me-2"></i>Не все ставки сделаны
                             </div>
                         </form>
                     </div>
-                    <div class="bid-panel-spacer"></div>
                 </div>
-                <div class="col-lg-6 offset-lg-3 col-md-12 order-first" v-if="step.phase===2 && step.action===2 && !detailMode">
-                    <div class="game-card">
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===2 && !detailMode">
+                    <div class="game-card compact">
                         <div class="game-card-header">
                             <h4 class="game-card-title">Взятки</h4>
                             <div class="step-indicator">
@@ -1226,7 +1277,7 @@
                             </div>
                         </div>
                         <form class="needs-validation" novalidate="">
-                            <div class="d-flex flex-column gap-2 mb-3">
+                            <div class="d-flex flex-column player-list">
                                 <div class="player-row bid-selectable" v-for="(id, index) in queue"
                                      :class="{'bid-active': index === bribeCurrentIdx}"
                                      @click="selectBribePlayer(index)">
@@ -1240,18 +1291,14 @@
                                     <span class="score-display">{{ bribeValue(id) === null ? '' : selectedBlocks[step.block].steps[step.step].scores[id] }}</span>
                                 </div>
                             </div>
-                            <div class="alert alert-danger" role="alert" v-if="notValidBribes">
+                            <div class="alert alert-danger mt-2 mb-0 py-2" role="alert" v-if="notValidBribes">
                                 <i class="fa fa-exclamation-triangle me-2"></i>Сумма взяток не соответствует количеству карт
                             </div>
                         </form>
                     </div>
-                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="next" style="padding: 0.875rem;">
-                        <i class="fa fa-calculator me-2"></i>Посчитать
-                    </button>
-                    <div class="bid-panel-spacer"></div>
                 </div>
-                <div class="col-lg-6 offset-lg-3 col-md-12 order-first" v-if="step.phase===3 && !detailMode">
-                    <div class="game-card">
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===3 && !detailMode">
+                    <div class="game-card compact">
                         <div class="game-card-header">
                             <h4 class="game-card-title">Итоги</h4>
                         </div>
@@ -1267,6 +1314,7 @@
                     <button class="btn btn-outline-primary w-100" @click.stop.prevent="start">
                         <i class="fa fa-refresh me-2"></i>Начать заново
                     </button>
+                    <div class="bid-panel-spacer" v-if="step.phase===2 && !detailMode"></div>
                 </div>
                 <pre>
                     {{ false ? prizes : '' }}
