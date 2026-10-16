@@ -65,6 +65,156 @@
             margin-bottom: 1rem;
         }
 
+        /* Шапка и меню */
+        .app-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0 0;
+        }
+
+        .app-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--gold);
+        }
+
+        .app-menu-wrap {
+            position: relative;
+        }
+
+        .app-menu-btn {
+            width: 40px;
+            height: 36px;
+            padding: 0;
+            font-size: 1.1rem;
+        }
+
+        .app-menu-btn.btn-outline-primary.active,
+        .app-menu-btn.btn-outline-primary:active {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--felt);
+        }
+
+        .app-menu-paper .app-menu-btn.active {
+            background: var(--marker);
+            color: var(--ink);
+        }
+
+        .app-menu-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 1070;
+        }
+
+        .app-menu {
+            position: absolute;
+            top: calc(100% + 6px);
+            right: 0;
+            z-index: 1071;
+            min-width: 220px;
+            padding: 0.4rem;
+            background: var(--felt-light);
+            border: 1px solid var(--gold-dim);
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+        }
+
+        .app-menu-label {
+            padding: 0.3rem 0.6rem;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+        }
+
+        .app-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            width: 100%;
+            padding: 0.6rem;
+            border: 0;
+            border-radius: 6px;
+            background: transparent;
+            color: var(--text-primary);
+            font-size: 1rem;
+            text-align: left;
+        }
+
+        .app-menu-item:hover {
+            background: rgba(212, 168, 67, 0.12);
+        }
+
+        .app-menu-item > .fa:first-child {
+            width: 1.1rem;
+            text-align: center;
+            color: var(--gold);
+        }
+
+        .app-menu-check {
+            margin-left: auto;
+            color: var(--gold);
+        }
+
+        .app-menu-sep {
+            height: 1px;
+            margin: 0.35rem 0.2rem;
+            background: var(--border);
+        }
+
+        .app-menu-item.app-menu-danger,
+        .app-menu-item.app-menu-danger > .fa:first-child {
+            color: #e5675a;
+        }
+
+        /* меню на листе — бумажное */
+        .app-menu-paper .app-menu {
+            background: var(--paper);
+            border: 1.5px solid var(--ink-soft);
+            box-shadow: 0 10px 24px rgba(31, 60, 136, 0.2);
+        }
+
+        .app-menu-paper .app-menu-label {
+            color: var(--ink-soft);
+        }
+
+        .app-menu-paper .app-menu-item {
+            color: var(--ink);
+            font-family: var(--hand);
+            font-size: 1.35rem;
+            line-height: 1;
+        }
+
+        .app-menu-paper .app-menu-item > .fa:first-child,
+        .app-menu-paper .app-menu-check {
+            color: var(--ink);
+            font-size: 1rem;
+        }
+
+        .app-menu-paper .app-menu-item:hover {
+            background: var(--marker);
+        }
+
+        .app-menu-paper .app-menu-sep {
+            background: var(--ink-soft);
+        }
+
+        .app-menu-paper .app-menu-item.app-menu-danger,
+        .app-menu-paper .app-menu-item.app-menu-danger > .fa:first-child {
+            color: var(--ink-red);
+        }
+
+        .app-menu-paper .app-menu-btn {
+            width: 42px;
+            font-size: 1.1rem;
+        }
+
         /* игровые карточки — плотнее, чтобы на телефоне всё помещалось на экран */
         .game-card.compact {
             padding: 0.75rem 1rem;
@@ -498,6 +648,8 @@
         }
 
         .detail-mode-header {
+            position: relative;
+            z-index: 5;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -965,6 +1117,15 @@
             </div>
 
             <div class="row" :class="step.phase === 1 ? 'g-5' : 'g-3'">
+                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="[2,3].includes(step.phase) && !detailMode">
+                    <header class="app-header">
+                        <div class="app-brand">
+                            <img src="/icon.svg" alt="" width="30" height="30">
+                            <span>Расписной покер</span>
+                        </div>
+                        <app-menu :table-mode="false" @mode="setTableMode" @restart="restartGame"></app-menu>
+                    </header>
+                </div>
                 <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===1">
                     <div class="game-card">
                         <div class="game-card-header">
@@ -1126,9 +1287,7 @@
                 <div v-if="detailMode && [2,3].includes(step.phase)" class="detail-mode">
                     <div class="detail-mode-header">
                         <h4>Расписной покер</h4>
-                        <button class="btn btn-paper" @click="exitDetailMode">
-                            <i class="fa fa-list me-1"></i>Обычный режим
-                        </button>
+                        <app-menu paper :table-mode="true" @mode="setTableMode" @restart="restartGame"></app-menu>
                     </div>
                     <div class="detail-table-scroll">
                         <table class="detail-table-full">
@@ -1310,11 +1469,8 @@
                         </button>
                     </div>
                 </div>
-                <div class="col-lg-6 offset-lg-3 col-md-12">
-                    <button class="btn btn-outline-primary w-100" @click.stop.prevent="start">
-                        <i class="fa fa-refresh me-2"></i>Начать заново
-                    </button>
-                    <div class="bid-panel-spacer" v-if="step.phase===2 && !detailMode"></div>
+                <div class="col-12 p-0 m-0" v-if="step.phase===2 && !detailMode">
+                    <div class="bid-panel-spacer"></div>
                 </div>
                 <pre>
                     {{ false ? prizes : '' }}
@@ -2370,9 +2526,71 @@
         {deep: true}
     );
 
+    // Меню в шапке: режим игры и «Начать заново»
+    const AppMenu = {
+        props: {
+            tableMode: Boolean,
+            paper: Boolean
+        },
+        emits: ['mode', 'restart'],
+        data() {
+            return {open: false};
+        },
+        methods: {
+            choose(event, value) {
+                this.open = false;
+                this.$emit(event, value);
+            }
+        },
+        template: `
+            <div class="app-menu-wrap" :class="{'app-menu-paper': paper}">
+                <button type="button" class="btn app-menu-btn" :class="{'btn-paper': paper, 'btn-outline-primary': !paper, 'active': open}"
+                        @click="open = !open" title="Меню" aria-label="Меню" :aria-expanded="open">
+                    <i class="fa" :class="open ? 'fa-times' : 'fa-bars'"></i>
+                </button>
+                <template v-if="open">
+                    <div class="app-menu-backdrop" @click="open = false"></div>
+                    <div class="app-menu" role="menu">
+                        <div class="app-menu-label">Режим игры</div>
+                        <button type="button" class="app-menu-item" role="menuitemradio" :aria-checked="!tableMode"
+                                @click="choose('mode', false)">
+                            <i class="fa fa-list"></i><span>Обычный</span>
+                            <i class="fa fa-check app-menu-check" v-if="!tableMode"></i>
+                        </button>
+                        <button type="button" class="app-menu-item" role="menuitemradio" :aria-checked="tableMode"
+                                @click="choose('mode', true)">
+                            <i class="fa fa-table"></i><span>Табличный</span>
+                            <i class="fa fa-check app-menu-check" v-if="tableMode"></i>
+                        </button>
+                        <div class="app-menu-sep"></div>
+                        <button type="button" class="app-menu-item app-menu-danger" role="menuitem"
+                                @click="choose('restart')">
+                            <i class="fa fa-refresh"></i><span>Начать заново</span>
+                        </button>
+                    </div>
+                </template>
+            </div>
+        `
+    }
+
+    function setTableMode(value) {
+        if (value) {
+            enterDetailMode();
+        } else {
+            exitDetailMode();
+        }
+    }
+
+    function restartGame() {
+        if (confirm('Начать новую игру? Результаты текущей игры будут удалены.')) {
+            start();
+        }
+    }
+
     const app = createApp({
         components: {
-            draggable
+            draggable,
+            AppMenu
         },
         setup() {
             return {
@@ -2416,6 +2634,8 @@
                 isDetailActiveCell,
                 clickDetailCell,
                 canPickDetailCell,
+                setTableMode,
+                restartGame,
                 blockHasData,
                 bidCurrentIdx,
                 canBidBack,
