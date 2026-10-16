@@ -253,11 +253,6 @@
             font-size: 1.1rem;
         }
 
-        .replay-hint {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
         .game-card-header {
             display: flex;
             align-items: center;
@@ -795,6 +790,24 @@
             background: rgba(255, 210, 0, 0.6) !important;
         }
 
+        .detail-table-full .cell-total {
+            position: relative;
+        }
+
+        /* крестик «слетел с премии» — красной ручкой в уголке итога */
+        .detail-table-full .premium-cross {
+            position: absolute;
+            top: 50%;
+            left: 0.35rem;
+            width: 1.15rem;
+            height: 1.15rem;
+            transform: translateY(-50%) rotate(-4deg);
+            fill: none;
+            stroke: var(--ink-red);
+            stroke-width: 2.6;
+            stroke-linecap: round;
+        }
+
         .detail-table-full .block-total td {
             border-top: 3px double var(--ink);
             font-size: 1.45rem;
@@ -1070,12 +1083,96 @@
             opacity: 0.5;
         }
 
+        .replay-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 1080;
+            background: rgba(0, 0, 0, 0.45);
+        }
+
+        /* окно всплывает в самом верху экрана */
+        .replay-window {
+            position: fixed;
+            top: 0.75rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1081;
+            width: min(420px, calc(100vw - 1.5rem));
+            max-height: calc(100vh - 1.5rem);
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            padding: 0.9rem;
+            background: var(--felt-light);
+            border: 1px solid var(--gold-dim);
+            border-radius: 12px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.5);
+        }
+
+        .replay-title {
+            font-family: Georgia, 'Times New Roman', serif;
+            font-size: 1.1rem;
+            color: var(--gold);
+        }
+
         .replay-list {
             display: flex;
             flex-direction: column;
-            gap: 0.25rem;
-            max-height: 320px;
+            gap: 0.3rem;
+            min-height: 0;
             overflow-y: auto;
+        }
+
+        .replay-cancel {
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            background: var(--felt);
+        }
+
+        .replay-cancel:hover {
+            color: var(--text-primary);
+            border-color: var(--gold-dim);
+        }
+
+        /* в табличном режиме окно бумажное */
+        .replay-paper {
+            --paper: #fbf8ef;
+            --ink: #1f3c88;
+            --ink-soft: rgba(31, 60, 136, 0.55);
+            --marker: rgba(255, 226, 64, 0.45);
+            --hand: 'Caveat', 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
+            background-color: var(--paper);
+            background-image:
+                linear-gradient(rgba(70, 120, 190, 0.16) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(70, 120, 190, 0.16) 1px, transparent 1px);
+            background-size: 22px 22px;
+            border: 1.5px solid var(--ink-soft);
+            box-shadow: 0 12px 30px rgba(31, 60, 136, 0.25);
+            font-family: var(--hand);
+        }
+
+        .replay-paper .replay-title {
+            font-family: var(--hand);
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1;
+        }
+
+        .replay-paper .replay-item,
+        .replay-paper .replay-cancel {
+            font-size: 1.35rem;
+            line-height: 1.1;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.55);
+            border: 1.5px solid var(--ink-soft);
+        }
+
+        .replay-paper .replay-item:hover,
+        .replay-paper .replay-cancel:hover {
+            background: var(--marker);
+            border-color: var(--ink);
+            color: var(--ink);
         }
 
         .replay-item {
@@ -1159,7 +1256,7 @@
                             <img src="/icon.svg" alt="" width="30" height="30">
                             <span>Расписной покер</span>
                         </div>
-                        <app-menu :table-mode="false" @mode="setTableMode" @restart="restartGame"></app-menu>
+                        <app-menu :table-mode="false" :can-replay="playedSteps.length > 0" @mode="setTableMode" @replay="replayListOpen = true" @restart="restartGame"></app-menu>
                     </header>
                 </div>
                 <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===1">
@@ -1279,8 +1376,7 @@
                             <h4 class="game-card-title">Таблица результатов</h4>
                             <div class="d-flex gap-2">
                                 <button v-if="playedSteps.length" type="button" class="btn btn-sm btn-outline-warning"
-                                        :class="{'active': replayListOpen}"
-                                        @click="replayListOpen = !replayListOpen" title="Переиграть пульку">
+                                        @click="replayListOpen = true" title="Переиграть пульку">
                                     <i class="fa fa-history"></i><span class="d-none d-sm-inline ms-1">Переиграть</span>
                                 </button>
                                 <button type="button" class="btn btn-sm btn-outline-primary" @click="enterDetailMode" title="Подробная таблица">
@@ -1308,22 +1404,30 @@
                             </tr>
                             </tbody>
                         </table>
-                        <div v-if="replayListOpen && playedSteps.length" class="replay-list mt-2">
-                            <div class="replay-hint">Какую пульку переиграть?</div>
+                    </div>
+                </div>
+
+                <!-- Окно выбора пульки для переигрывания (оба режима) -->
+                <template v-if="replayListOpen && playedSteps.length">
+                    <div class="replay-backdrop" @click="replayListOpen = false"></div>
+                    <div class="replay-window" :class="{'replay-paper': detailMode}" role="dialog" aria-label="Переиграть пульку">
+                        <div class="replay-title">Какую пульку переиграть?</div>
+                        <div class="replay-list">
                             <button v-for="item in playedSteps" :key="item.bIdx + '-' + item.sKey"
-                                    type="button" class="replay-item" @click="replayStep(item.bIdx, item.sKey)">
+                                    type="button" class="replay-item" @click="chooseReplay(item)">
                                 <span>Блок {{ item.title }}</span>
                                 <span>Карт: {{ item.cards }}</span>
                             </button>
                         </div>
+                        <button type="button" class="btn replay-cancel" @click="replayListOpen = false">Отмена</button>
                     </div>
-                </div>
+                </template>
 
                 <!-- Detail Mode: лист бумаги -->
                 <div v-if="detailMode && [2,3].includes(step.phase)" class="detail-mode">
                     <div class="detail-mode-header">
                         <h4>Расписной покер</h4>
-                        <app-menu paper :table-mode="true" @mode="setTableMode" @restart="restartGame"></app-menu>
+                        <app-menu paper :table-mode="true" :can-replay="playedSteps.length > 0" @mode="setTableMode" @replay="replayListOpen = true" @restart="restartGame"></app-menu>
                     </div>
                     <div class="detail-table-scroll">
                         <table class="detail-table-full">
@@ -1360,8 +1464,13 @@
                                 </tr>
                                 <tr class="block-total">
                                     <td class="col-cards">Σ</td>
-                                    <td v-for="(name, pid) in players" :key="'total-'+pid"
+                                    <td v-for="(name, pid) in players" :key="'total-'+pid" class="cell-total"
                                         :class="{'ink-red': blockHasData(block) && cumulativeBlockScores[bIndex][pid] < 0}">
+                                        <svg v-if="lostPremium(bIndex, pid)" class="premium-cross" viewBox="0 0 24 24"
+                                             role="img" aria-label="Слетел с премии">
+                                            <title>Слетел с премии</title>
+                                            <path d="M4 5c5 4 10 9 16 15M19 4c-5 5-9 10-14 16"/>
+                                        </svg>
                                         {{ blockHasData(block) ? cumulativeBlockScores[bIndex][pid] : '' }}
                                     </td>
                                 </tr>
@@ -2047,6 +2156,19 @@
         return parseInt(cards_count.value) - sum === parseInt(value);
     }
 
+    // Слетел с премии в блоке: хотя бы в одной сыгранной пульке взял не столько, сколько заказал
+    function lostPremium(blockIdx, playerId) {
+        const block = selectedBlocks.value[blockIdx];
+        if (!block) return false;
+        return Object.entries(block.steps).some(([sKey, stepObj]) => {
+            if (!isPlayedStep(blockIdx, sKey)) return false;
+            const order = stepObj.orders?.[playerId];
+            const bribe = stepObj.bribes?.[playerId];
+            if (order == null || bribe == null) return false;
+            return parseInt(order) !== parseInt(bribe);
+        });
+    }
+
     function blockHasData(block) {
         for (const stepObj of Object.values(block.steps)) {
             if (stepObj.bribes) {
@@ -2594,9 +2716,10 @@
     const AppMenu = {
         props: {
             tableMode: Boolean,
-            paper: Boolean
+            paper: Boolean,
+            canReplay: Boolean
         },
-        emits: ['mode', 'restart'],
+        emits: ['mode', 'replay', 'restart'],
         data() {
             return {open: false};
         },
@@ -2627,6 +2750,10 @@
                             <i class="fa fa-check app-menu-check" v-if="tableMode"></i>
                         </button>
                         <div class="app-menu-sep"></div>
+                        <button v-if="canReplay" type="button" class="app-menu-item" role="menuitem"
+                                @click="choose('replay')">
+                            <i class="fa fa-history"></i><span>Переиграть</span>
+                        </button>
                         <button type="button" class="app-menu-item app-menu-danger" role="menuitem"
                                 @click="choose('restart')">
                             <i class="fa fa-refresh"></i><span>Начать заново</span>
@@ -2635,6 +2762,11 @@
                 </template>
             </div>
         `
+    }
+
+    function chooseReplay(item) {
+        replayListOpen.value = false;
+        replayStep(item.bIdx, item.sKey);
     }
 
     function setTableMode(value) {
@@ -2700,7 +2832,9 @@
                 canPickDetailCell,
                 setTableMode,
                 restartGame,
+                chooseReplay,
                 blockHasData,
+                lostPremium,
                 bidCurrentIdx,
                 canBidBack,
                 bidValue,
