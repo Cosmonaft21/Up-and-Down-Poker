@@ -9,6 +9,9 @@
 
     <link href="/assets/css/bootstrap.min.css" rel="stylesheet">
     <link href="/assets/font-awesome-4.7.0/css/font-awesome.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;700&display=swap" rel="stylesheet">
     <style>
         :root {
             --felt: #1a2332;
@@ -416,129 +419,227 @@
             display: none !important;
         }
 
-        /* Detail Mode - Full Screen */
+        /* Detail Mode — лист бумаги в клетку */
+        .detail-mode,
+        .bid-panel-over {
+            --paper: #fbf8ef;
+            --paper-grid: rgba(70, 120, 190, 0.16);
+            --ink: #1f3c88;
+            --ink-soft: rgba(31, 60, 136, 0.55);
+            --ink-red: #c62828;
+            --margin-red: rgba(214, 69, 65, 0.55);
+            --marker: rgba(255, 226, 64, 0.45);
+            --hand: 'Caveat', 'Segoe Print', 'Bradley Hand', 'Comic Sans MS', cursive;
+        }
+
         .detail-mode {
             position: fixed;
             top: 0;
             left: 0;
             right: 0;
             bottom: 0;
-            background: var(--felt);
+            margin: 0;
+            padding: 0;
             z-index: 1050;
             display: flex;
             flex-direction: column;
             overflow: hidden;
+            color: var(--ink);
+            background-color: var(--paper);
+            background-image:
+                linear-gradient(var(--paper-grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--paper-grid) 1px, transparent 1px);
+            background-size: 22px 22px;
         }
 
         .detail-mode-header {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0.75rem 1.5rem;
-            border-bottom: 1px solid var(--border);
-            background: var(--felt-light);
+            gap: 0.75rem;
+            padding: 0.4rem 1rem;
+            border-bottom: 2px solid var(--ink-soft);
+            background: var(--paper);
             flex-shrink: 0;
-        }
-
-        @media (max-width: 575.98px) {
-            .detail-mode-header {
-                padding: 0.5rem 0.75rem;
-            }
         }
 
         .detail-mode-header h4 {
             margin: 0;
-            font-family: Georgia, 'Times New Roman', serif;
-            color: var(--gold);
-            font-size: 1.1rem;
+            font-family: var(--hand);
+            font-size: 1.7rem;
+            font-weight: 700;
+            color: var(--ink);
+            line-height: 1.1;
+        }
+
+        .detail-mode-header .btn-paper {
+            font-family: var(--hand);
+            font-size: 1.15rem;
+            line-height: 1;
+            padding: 0.35rem 0.75rem;
+            color: var(--ink);
+            background: transparent;
+            border: 1.5px solid var(--ink-soft);
+            border-radius: 6px;
+        }
+
+        .detail-mode-header .btn-paper:hover {
+            background: var(--marker);
         }
 
         .detail-table-scroll {
             flex: 1;
             overflow: auto;
-            padding: 1rem;
+            padding: 0.75rem 1rem;
+        }
+
+        .detail-table-full {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            border-collapse: collapse;
+            font-family: var(--hand);
+            color: var(--ink);
+            table-layout: fixed;
+        }
+
+        .detail-table-full th,
+        .detail-table-full td {
+            border: 1px solid var(--ink-soft);
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .detail-table-full th {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            background: var(--paper);
+            font-size: 1.35rem;
+            font-weight: 700;
+            padding: 0.2rem 0.25rem;
+            line-height: 1.05;
+            /* длинные имена переносятся по буквам — лист всегда помещается в ширину экрана */
+            white-space: normal;
+            overflow-wrap: anywhere;
+            hyphens: none;
+            vertical-align: bottom;
+            border-bottom: 2px solid var(--ink);
+        }
+
+        /* столбец «карт» отделён красной линией, как поля в тетради */
+        .detail-table-full .col-cards {
+            width: 2.4rem;
+            font-size: 1.3rem;
+            font-weight: 700;
+            border-right: 2px solid var(--margin-red);
+        }
+
+        .detail-table-full .block-header td {
+            text-align: left;
+            padding: 0.35rem 0.6rem 0.1rem;
+            font-size: 1.4rem;
+            font-weight: 700;
+            border-left: none;
+            border-right: none;
+            border-top: 2px solid var(--ink);
+        }
+
+        .detail-table-full .block-header td span {
+            border-bottom: 2px solid var(--ink);
+        }
+
+        .detail-table-full .cell-paper {
+            position: relative;
+            height: 2.6rem;
+            padding: 0 0.3rem;
+        }
+
+        .detail-table-full .paper-bid {
+            position: absolute;
+            top: 0.05rem;
+            left: 0.3rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            line-height: 1;
+            color: var(--ink);
+            opacity: 0.8;
+        }
+
+        .detail-table-full .paper-score {
+            display: block;
+            padding-left: 0.6rem;
+            font-size: 1.5rem;
+            line-height: 1;
+        }
+
+        /* ячейка, на которую можно нажать, чтобы вернуться к вводу этого игрока */
+        .detail-table-full .cell-pickable {
+            cursor: pointer;
+            box-shadow: inset 0 0 0 2px rgba(31, 60, 136, 0.35);
+        }
+
+        .detail-table-full .cell-pickable:hover {
+            background: rgba(255, 210, 0, 0.35) !important;
+        }
+
+        .detail-table-full .ink-red {
+            color: var(--ink-red);
+        }
+
+        .detail-table-full .cell-current-step td {
+            background: var(--marker);
+        }
+
+        .detail-table-full .cell-active {
+            cursor: pointer;
+            outline: 2px dashed var(--ink);
+            outline-offset: -4px;
+            background: rgba(255, 210, 0, 0.6) !important;
+        }
+
+        .detail-table-full .block-total td {
+            border-top: 3px double var(--ink);
+            font-size: 1.45rem;
+            font-weight: 700;
+            height: 2.4rem;
+        }
+
+        .paper-result {
+            max-width: 900px;
+            margin: 1rem auto 2rem;
+            text-align: center;
+            font-family: var(--hand);
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--ink);
         }
 
         @media (max-width: 575.98px) {
+            .detail-mode-header {
+                padding: 0.35rem 0.6rem;
+            }
             .detail-table-scroll {
-                padding: 0;
+                padding: 0.4rem 0.25rem;
+            }
+            .detail-table-full th {
+                font-size: 1.1rem;
+            }
+            .detail-table-full .col-cards {
+                width: 1.9rem;
+                font-size: 1.15rem;
+            }
+            .detail-table-full .paper-score {
+                font-size: 1.3rem;
+            }
+            .detail-table-full .paper-bid {
+                font-size: 1.1rem;
+                left: 0.2rem;
             }
             .detail-input-panel {
                 padding: 0.5rem 0.75rem;
                 gap: 0.75rem;
             }
-        }
-
-        .detail-table-full {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-
-        .detail-table-full th {
-            background: var(--felt-light);
-            color: var(--gold);
-            font-size: 0.75rem;
-            padding: 0.5rem 0.4rem;
-            border: 1px solid var(--border);
-            position: sticky;
-            top: 0;
-            z-index: 2;
-        }
-
-        .detail-table-full td {
-            padding: 0.4rem;
-            border: 1px solid var(--border);
-            text-align: center;
-            vertical-align: middle;
-        }
-
-        .detail-table-full .block-header td {
-            background: var(--gold);
-            color: var(--felt);
-            font-weight: 700;
-            font-family: Georgia, serif;
-            font-size: 0.85rem;
-            text-align: left;
-            padding: 0.5rem 0.75rem;
-        }
-
-        .detail-table-full .block-total td {
-            background: var(--felt-light);
-            font-weight: 600;
-            color: var(--gold);
-        }
-
-        .detail-table-full .cell-bid,
-        .detail-table-full .cell-bribe {
-            cursor: pointer;
-            transition: background 0.15s;
-            min-width: 40px;
-        }
-
-        .detail-table-full .cell-bid:hover,
-        .detail-table-full .cell-bribe:hover {
-            background: rgba(212, 168, 67, 0.1);
-        }
-
-        .detail-table-full .cell-active {
-            background: rgba(212, 168, 67, 0.25) !important;
-            outline: 2px solid var(--gold);
-            outline-offset: -2px;
-            font-weight: 700;
-        }
-
-        .detail-table-full .cell-filled {
-            color: var(--text-primary);
-        }
-
-        .detail-table-full .cell-empty {
-            color: var(--text-secondary);
-            opacity: 0.5;
-        }
-
-        .detail-table-full .cell-current-step {
-            background: rgba(212, 168, 67, 0.05);
         }
 
         /* Bottom Input Panel */
@@ -577,20 +678,29 @@
             font-size: 0.8rem;
             color: var(--text-secondary);
             margin-left: auto;
+            white-space: nowrap;
+        }
+
+        /* на телефоне отступы сетки не шире полей контейнера — без горизонтальной прокрутки */
+        @media (max-width: 575.98px) {
+            main .row.g-5 {
+                --bs-gutter-x: 1.5rem;
+                --bs-gutter-y: 1rem;
+            }
         }
 
         .detail-input-numbers {
-            display: flex;
-            flex-wrap: wrap;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
             gap: 0.4rem;
         }
 
         .detail-num-btn {
-            width: 42px;
-            height: 42px;
+            width: 100%;
+            height: 48px;
             border-radius: 8px;
             font-weight: 700;
-            font-size: 1rem;
+            font-size: 1.15rem;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -606,7 +716,6 @@
             background: var(--gold);
             border-color: var(--gold);
             color: var(--felt);
-            transform: scale(1.08);
         }
 
         .detail-num-btn:disabled {
@@ -615,15 +724,175 @@
         }
 
         .detail-num-btn.pass-btn {
-            width: auto;
-            padding: 0 0.75rem;
-            font-size: 0.85rem;
+            font-size: 0.95rem;
         }
 
         .detail-num-btn.pass-btn.active-num {
             background: var(--gold);
             border-color: var(--gold);
             color: var(--felt);
+        }
+
+        /* Нижняя панель ставок в обычном режиме */
+        .bid-panel {
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: 0;
+            z-index: 1040;
+            padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+        }
+
+        /* в табличном режиме панель поверх полноэкранной таблицы */
+        .bid-panel.bid-panel-over {
+            z-index: 1060;
+            color: var(--ink);
+            background-color: var(--paper);
+            background-image:
+                linear-gradient(var(--paper-grid) 1px, transparent 1px),
+                linear-gradient(90deg, var(--paper-grid) 1px, transparent 1px);
+            background-size: 22px 22px;
+            border-top: 3px double var(--ink);
+            box-shadow: 0 -6px 16px rgba(31, 60, 136, 0.12);
+        }
+
+        /* панель на листе — тоже «от руки» */
+        .bid-panel-over .detail-input-phase {
+            color: var(--ink-soft);
+        }
+
+        .bid-panel-over .detail-input-player,
+        .bid-panel-over .detail-done-msg {
+            font-family: var(--hand);
+            font-size: 1.7rem;
+            line-height: 1;
+            color: var(--ink);
+        }
+
+        .bid-panel-over .detail-input-cards {
+            font-family: var(--hand);
+            font-size: 1.3rem;
+            color: var(--ink-soft);
+        }
+
+        .bid-panel-over .detail-num-btn {
+            font-family: var(--hand);
+            font-size: 1.6rem;
+            color: var(--ink);
+            background: rgba(255, 255, 255, 0.55);
+            border: 1.5px solid var(--ink-soft);
+        }
+
+        .bid-panel-over .detail-num-btn.pass-btn {
+            font-size: 1.35rem;
+        }
+
+        .bid-panel-over .detail-num-btn:hover:not(:disabled),
+        .bid-panel-over .detail-num-btn.active-num {
+            color: var(--ink);
+            background: rgba(255, 210, 0, 0.6);
+            border-color: var(--ink);
+        }
+
+        .bid-panel-over .detail-num-btn:disabled {
+            opacity: 0.3;
+        }
+
+        .bid-panel-over .btn {
+            font-family: var(--hand);
+            font-size: 1.15rem;
+            line-height: 1;
+            color: var(--ink);
+            background: transparent;
+            border: 1.5px solid var(--ink-soft);
+        }
+
+        .bid-panel-over .btn:hover {
+            color: var(--ink);
+            background: var(--marker);
+        }
+
+        .bid-panel-inner {
+            width: 100%;
+            max-width: 720px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .bid-panel .detail-input-row {
+            gap: 0.75rem;
+        }
+
+        .bid-panel .detail-input-player {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .bid-panel-spacer {
+            height: 180px;
+        }
+
+        .detail-num-btn.active-num {
+            background: var(--gold);
+            border-color: var(--gold);
+            color: var(--felt);
+        }
+
+        .player-row.bid-active {
+            border-color: var(--gold);
+            background: rgba(212, 168, 67, 0.12);
+        }
+
+        .player-row.bid-selectable {
+            cursor: pointer;
+        }
+
+        .bid-value {
+            margin-left: auto;
+            min-width: 3ch;
+            font-family: 'SF Mono', 'Cascadia Code', Consolas, monospace;
+            font-weight: 700;
+            color: var(--gold);
+            text-align: right;
+        }
+
+        .bid-value.bid-empty {
+            color: var(--text-secondary);
+            opacity: 0.5;
+        }
+
+        .replay-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .replay-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 1rem;
+            background: var(--felt-light);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            text-align: left;
+        }
+
+        .replay-item:hover {
+            border-color: var(--gold);
+        }
+
+        .detail-table-full .cell-replay {
+            cursor: pointer;
+        }
+
+        .detail-table-full .cell-replay:hover {
+            background: rgba(212, 168, 67, 0.15);
         }
 
         .detail-done-msg {
@@ -788,13 +1057,25 @@
                     <button class="btn btn-outline-primary w-100" @click="enterDetailMode">
                         <i class="fa fa-table me-2"></i>Подробная таблица
                     </button>
+                    <button v-if="playedSteps.length" class="btn btn-outline-warning w-100 mt-2"
+                            @click="replayListOpen = !replayListOpen">
+                        <i class="fa fa-history me-2"></i>Переиграть пульку
+                        <i class="fa ms-1" :class="replayListOpen ? 'fa-chevron-up' : 'fa-chevron-down'"></i>
+                    </button>
+                    <div v-if="replayListOpen && playedSteps.length" class="replay-list mt-2">
+                        <button v-for="item in playedSteps" :key="item.bIdx + '-' + item.sKey"
+                                type="button" class="replay-item" @click="replayStep(item.bIdx, item.sKey)">
+                            <span>Блок {{ item.title }}</span>
+                            <span>Карт: {{ item.cards }}</span>
+                        </button>
+                    </div>
                 </div>
 
-                <!-- Detail Mode: Full Screen Table -->
+                <!-- Detail Mode: лист бумаги -->
                 <div v-if="detailMode && [2,3].includes(step.phase)" class="detail-mode">
                     <div class="detail-mode-header">
-                        <h4><i class="fa fa-table me-2"></i>Подробная таблица</h4>
-                        <button class="btn btn-outline-primary btn-sm" @click="exitDetailMode">
+                        <h4>Расписной покер</h4>
+                        <button class="btn btn-paper" @click="exitDetailMode">
                             <i class="fa fa-list me-1"></i>Обычный режим
                         </button>
                     </div>
@@ -802,79 +1083,111 @@
                         <table class="detail-table-full">
                             <thead>
                             <tr>
-                                <th rowspan="2" style="width: 1px; white-space: nowrap;"></th>
-                                <th v-for="(name, pid) in players" :colspan="2" style="text-align: center;">{{ name }}</th>
+                                <th class="col-cards"></th>
+                                <th v-for="(name, pid) in players" :key="'h-'+pid" :title="name">{{ name }}</th>
                             </tr>
                             </thead>
                             <template v-for="(block, bIndex) in selectedBlocks" :key="block.id">
                                 <tr class="block-header">
-                                    <td :colspan="1 + Object.keys(players).length * 2">{{ block.title }}</td>
+                                    <td :colspan="1 + Object.keys(players).length"><span>{{ block.title }}</span></td>
                                 </tr>
                                 <tr v-for="(stepObj, sKey) in block.steps" :key="sKey"
-                                    :class="{'cell-current-step': bIndex === step.block && parseInt(sKey) === step.step}">
-                                    <td style="font-weight: 600; width: 1px; white-space: nowrap;">{{ stepObj.cards }}</td>
-                                    <template v-for="(name, pid) in players" :key="pid">
-                                        <td class="cell-bid"
-                                            style="width: 1px; white-space: nowrap;"
-                                            :class="{
-                                                'cell-active': isDetailActiveCell(bIndex, sKey, pid, 'bids'),
-                                                'cell-filled': stepObj.orders && stepObj.orders[pid] != null,
-                                                'cell-empty': !stepObj.orders || stepObj.orders[pid] == null
-                                            }"
-                                            @click="clickDetailCell(bIndex, sKey, pid, 'bids')">
-                                            {{ stepObj.orders && stepObj.orders[pid] != null ? stepObj.orders[pid] : '' }}
-                                        </td>
-                                        <td class="cell-score"
-                                            :class="{'cell-active': isDetailActiveCell(bIndex, sKey, pid, 'bribes')}">
-                                            {{ stepObj.scores && stepObj.scores[pid] != null ? stepObj.scores[pid] : '' }}
-                                        </td>
-                                    </template>
+                                    :class="{'cell-current-step': step.phase === 2 && bIndex === step.block && parseInt(sKey) === step.step}">
+                                    <td class="col-cards"
+                                        :class="{'cell-replay': isPlayedStep(bIndex, sKey)}"
+                                        :title="isPlayedStep(bIndex, sKey) ? 'Переиграть пульку' : ''"
+                                        @click="replayStep(bIndex, sKey)">{{ stepObj.cards }}</td>
+                                    <td v-for="(name, pid) in players" :key="pid" class="cell-paper"
+                                        :class="{
+                                            'cell-active': isDetailActiveCell(bIndex, sKey, pid, step.action === 1 ? 'bids' : 'bribes'),
+                                            'cell-pickable': canPickDetailCell(bIndex, sKey, pid)
+                                        }"
+                                        @click="clickDetailCell(bIndex, sKey, pid)">
+                                        <span class="paper-bid" v-if="stepObj.orders && stepObj.orders[pid] != null">
+                                            {{ parseInt(stepObj.orders[pid]) === 0 ? '–' : stepObj.orders[pid] }}
+                                        </span>
+                                        <span class="paper-score" :class="{'ink-red': stepObj.scores && stepObj.scores[pid] < 0}"
+                                              v-if="stepObj.bribes && stepObj.bribes[pid] != null && stepObj.scores && stepObj.scores[pid] != null">
+                                            {{ stepObj.scores[pid] }}
+                                        </span>
+                                    </td>
                                 </tr>
                                 <tr class="block-total">
-                                    <td style="text-align: left; padding-left: 0.75rem;"></td>
-                                    <template v-for="(name, pid) in players" :key="'total-'+pid">
-                                        <td></td>
-                                        <td>{{ blockHasData(block) ? cumulativeBlockScores[bIndex][pid] : '' }}</td>
-                                    </template>
+                                    <td class="col-cards">Σ</td>
+                                    <td v-for="(name, pid) in players" :key="'total-'+pid"
+                                        :class="{'ink-red': blockHasData(block) && cumulativeBlockScores[bIndex][pid] < 0}">
+                                        {{ blockHasData(block) ? cumulativeBlockScores[bIndex][pid] : '' }}
+                                    </td>
                                 </tr>
                             </template>
                         </table>
-                    </div>
-                    <!-- Bottom Input Panel -->
-                    <div class="detail-input-panel" v-if="activeCell">
-                        <div class="detail-input-row">
-                            <span class="detail-input-phase">{{ activeCell.type === 'bids' ? 'Ставка' : 'Взятки' }}</span>
-                            <span class="detail-input-player">{{ players[activeCell.playerId] }}</span>
-                            <span class="detail-input-cards">Карт: {{ getActiveCellCards() }}</span>
-                            <button v-if="showPrevBidBtn" class="btn btn-sm btn-outline-warning ms-auto" @click="goToPreviousBid" title="Вернуться к предыдущему игроку">
-                                <i class="fa fa-arrow-left"></i>
-                            </button>
+                        <div class="paper-result" v-if="step.phase===3">
+                            <i class="fa fa-trophy me-2"></i>Победил {{ winner() }}!
                         </div>
-                        <div class="detail-input-numbers">
-                            <button class="detail-num-btn pass-btn"
-                                    v-if="activeCell.type === 'bids'"
-                                    :disabled="exceptDetail(0)"
-                                    @click="setDetailValue(0)">Пас</button>
-                            <button class="detail-num-btn"
-                                    v-for="n in detailNumbers" :key="n"
-                                    v-show="!(activeCell.type === 'bids' && n === 0)"
-                                    :disabled="n > getActiveCellCards() || exceptDetail(n) || (activeCell.type === 'bribes' && exceptBribe(n))"
-                                    @click="setDetailValue(n)">
-                                {{ n }}
-                            </button>
-                            <button class="detail-num-btn pass-btn"
-                                    v-if="activeCell.type === 'bribes'"
-                                    style="background: var(--red-suit); border-color: var(--red-suit); color: #fff;"
-                                    @click="resetCurrentStepBribes">
-                                <i class="fa fa-undo"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <div class="detail-input-panel" v-else>
-                        <span class="detail-done-msg"><i class="fa fa-check me-1"></i>Все данные введены</span>
+                        <div class="bid-panel-spacer" v-if="step.phase===2"></div>
                     </div>
                 </div>
-                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===1 && !detailMode">
+                <!-- Нижняя панель ввода ставок и взяток (обычный и табличный режим) -->
+                <div v-if="step.phase===2" class="detail-input-panel bid-panel" :class="{'bid-panel-over': detailMode}">
+                    <div class="bid-panel-inner">
+                        <template v-if="step.action===1">
+                            <div class="detail-input-row">
+                                <template v-if="bidCurrentIdx >= 0">
+                                    <span class="detail-input-phase">Ставка</span>
+                                    <span class="detail-input-player">{{ players[queue[bidCurrentIdx]] }}</span>
+                                </template>
+                                <span v-else class="detail-done-msg"><i class="fa fa-check me-1"></i>Все ставки сделаны</span>
+                                <span class="detail-input-cards">Карт: {{ cards_count }}</span>
+                                <button v-if="canBidBack" type="button" class="btn btn-sm btn-outline-warning"
+                                        @click="bidBack" title="Вернуться к предыдущему игроку">
+                                    <i class="fa fa-arrow-left"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light" @click="reorder" title="Перезаказать">
+                                    <i class="fa fa-undo"></i><span class="d-none d-sm-inline ms-1">Перезаказать</span>
+                                </button>
+                            </div>
+                            <div class="detail-input-numbers" v-if="bidCurrentIdx >= 0">
+                                <button type="button" class="detail-num-btn pass-btn"
+                                        :class="{'active-num': bidValue(queue[bidCurrentIdx]) === 0}"
+                                        :disabled="except(bidCurrentIdx, 0)"
+                                        @click="setBid(0)">Пас</button>
+                                <button type="button" class="detail-num-btn"
+                                        v-for="n in cards_count" :key="n"
+                                        :class="{'active-num': bidValue(queue[bidCurrentIdx]) === n}"
+                                        :disabled="except(bidCurrentIdx, n)"
+                                        @click="setBid(n)">{{ n }}</button>
+                            </div>
+                        </template>
+                        <template v-else>
+                            <div class="detail-input-row">
+                                <template v-if="bribeCurrentIdx >= 0">
+                                    <span class="detail-input-phase">Взятки</span>
+                                    <span class="detail-input-player">{{ players[queue[bribeCurrentIdx]] }}</span>
+                                </template>
+                                <span v-else class="detail-done-msg"><i class="fa fa-check me-1"></i>Все взятки введены</span>
+                                <span class="detail-input-cards">Карт: {{ cards_count }}</span>
+                                <button v-if="canBribeBack" type="button" class="btn btn-sm btn-outline-warning"
+                                        @click="bribeBack" title="Вернуться к предыдущему игроку">
+                                    <i class="fa fa-arrow-left"></i>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light" @click="resetBribes" title="Сбросить взятки">
+                                    <i class="fa fa-eraser"></i><span class="d-none d-sm-inline ms-1">Сбросить</span>
+                                </button>
+                                <button type="button" class="btn btn-sm btn-light" @click="reorder" title="Перезаказать">
+                                    <i class="fa fa-undo"></i><span class="d-none d-sm-inline ms-1">Перезаказать</span>
+                                </button>
+                            </div>
+                            <div class="detail-input-numbers" v-if="bribeCurrentIdx >= 0">
+                                <button type="button" class="detail-num-btn"
+                                        v-for="n in bribeNumbers" :key="n"
+                                        :class="{'active-num': bribeValue(queue[bribeCurrentIdx]) === n}"
+                                        :disabled="!bribeAllowed(n)"
+                                        @click="setBribe(n)">{{ n }}</button>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+                <div class="col-lg-6 offset-lg-3 col-md-12 order-first" v-if="step.phase===2 && step.action===1 && !detailMode">
                     <div class="game-card">
                         <div class="game-card-header">
                             <h4 class="game-card-title">Ставки</h4>
@@ -885,35 +1198,23 @@
                         </div>
                         <form class="needs-validation" novalidate="">
                             <div class="d-flex flex-column gap-2 mb-3">
-                                <div class="player-row" v-for="(id, index) in queue">
+                                <div class="player-row" v-for="(id, index) in queue"
+                                     :class="{'bid-active': index === bidCurrentIdx, 'bid-selectable': bid_change}"
+                                     @click="selectBidPlayer(index)">
                                     <span class="player-name">{{ players[id] }}</span>
-                                    <div class="input-group" style="max-width: 160px;">
-                                        <select class="form-select" :class="{'is-invalid': notValidOrders}"
-                                                v-model="selectedBlocks[step.block].steps[step.step].orders[id]"
-                                                :disabled="disabled_block(index, id)">
-                                            <option value="0" :disabled="except(index, 0)">Пас</option>
-                                            <option :value="n" v-for="n in cards_count" :disabled="except(index, n)">
-                                                {{ n }}
-                                            </option>
-                                        </select>
-                                    </div>
+                                    <span class="bid-value" :class="{'bid-empty': bidValue(id) === null}">
+                                        {{ bidValue(id) === null ? '—' : (bidValue(id) === 0 ? 'Пас' : bidValue(id)) }}
+                                    </span>
                                 </div>
-                            </div>
-                            <div class="d-flex justify-content-end mb-3">
-                                <button type="button" class="btn btn-sm btn-light" @click.stop.prevent="reorder" title="Перезаказать">
-                                    <i class="fa fa-undo me-1"></i>Перезаказать
-                                </button>
                             </div>
                             <div class="alert alert-danger" role="alert" v-if="notValidOrders">
                                 <i class="fa fa-exclamation-triangle me-2"></i>Не все ставки сделаны
                             </div>
                         </form>
                     </div>
-                    <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="next" style="padding: 0.875rem;">
-                        <i class="fa fa-check me-2"></i>Заказать
-                    </button>
+                    <div class="bid-panel-spacer"></div>
                 </div>
-                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===2 && step.action===2 && !detailMode">
+                <div class="col-lg-6 offset-lg-3 col-md-12 order-first" v-if="step.phase===2 && step.action===2 && !detailMode">
                     <div class="game-card">
                         <div class="game-card-header">
                             <h4 class="game-card-title">Взятки</h4>
@@ -924,22 +1225,17 @@
                         </div>
                         <form class="needs-validation" novalidate="">
                             <div class="d-flex flex-column gap-2 mb-3">
-                                <div class="player-row" v-for="(id, index) in queue">
+                                <div class="player-row bid-selectable" v-for="(id, index) in queue"
+                                     :class="{'bid-active': index === bribeCurrentIdx}"
+                                     @click="selectBribePlayer(index)">
                                     <span class="player-name">{{ players[id] }}</span>
                                     <span class="order-display" :title="'Ставка: ' + selectedBlocks[step.block].steps[step.step].orders[id]">
-                                        {{ selectedBlocks[step.block].steps[step.step].orders[id] }}
+                                        {{ bidValue(id) === 0 ? 'Пас' : bidValue(id) }}
                                     </span>
-                                    <div class="input-group mx-2" style="max-width: 160px;">
-                                        <select class="form-select" :class="{'is-invalid': notValidBribes}"
-                                                v-model="selectedBlocks[step.block].steps[step.step].bribes[id]">
-                                            <option value="0">
-                                                {{ parseInt(selectedBlocks[step.block].steps[step.step].orders[id]) === 0 ? 0 : '|--|'
-                                                }}
-                                            </option>
-                                            <option :value="n" v-for="n in cards_count" :key="n">{{ n }}</option>
-                                        </select>
-                                    </div>
-                                    <span class="score-display">{{ selectedBlocks[step.block].steps[step.step].scores[id] }}</span>
+                                    <span class="bid-value mx-2" :class="{'bid-empty': bribeValue(id) === null}">
+                                        {{ bribeValue(id) === null ? '—' : bribeValue(id) }}
+                                    </span>
+                                    <span class="score-display">{{ bribeValue(id) === null ? '' : selectedBlocks[step.block].steps[step.step].scores[id] }}</span>
                                 </div>
                             </div>
                             <div class="alert alert-danger" role="alert" v-if="notValidBribes">
@@ -950,8 +1246,9 @@
                     <button class="w-100 btn btn-primary btn-lg" @click.stop.prevent="next" style="padding: 0.875rem;">
                         <i class="fa fa-calculator me-2"></i>Посчитать
                     </button>
+                    <div class="bid-panel-spacer"></div>
                 </div>
-                <div class="col-lg-6 offset-lg-3 col-md-12" v-if="step.phase===3 && !detailMode">
+                <div class="col-lg-6 offset-lg-3 col-md-12 order-first" v-if="step.phase===3 && !detailMode">
                     <div class="game-card">
                         <div class="game-card-header">
                             <h4 class="game-card-title">Итоги</h4>
@@ -1037,7 +1334,19 @@
     const playerErrors = ref({1: false, 2: false, 3: false, 4: false})
     const noBlockSelected = ref(false)
     const detailMode = ref(false)
-    const activeCell = ref(null)
+    // ячейка подробной таблицы, которая сейчас вводится (по тем же правилам, что и панель)
+    const activeCell = computed(() => {
+        if (step.value.phase !== 2) return null;
+        const blockIdx = step.value.block;
+        const stepKey = step.value.step;
+        if (step.value.action === 1 && bidCurrentIdx.value >= 0) {
+            return {blockIdx, stepKey, playerId: queue.value[bidCurrentIdx.value], type: 'bids'};
+        }
+        if (step.value.action === 2 && bribeCurrentIdx.value >= 0) {
+            return {blockIdx, stepKey, playerId: queue.value[bribeCurrentIdx.value], type: 'bribes'};
+        }
+        return null;
+    })
     const currentYear = ref(new Date().getFullYear())
     const players = ref({
         1: 'Игрок 1',
@@ -1363,40 +1672,44 @@
         validation();
     })
 
-    watch(
-        () => selectedBlocks.value[step.value.block]?.steps?.[step.value.step]?.bribes,
-        async (bribes) => {
-            if (!bribes) {
-                return;
-            }
+    // очки текущей пульки по введённым взяткам
+    function calcStepScores() {
+        const bribes = selectedBlocks.value[step.value.block]?.steps?.[step.value.step]?.bribes;
+        if (!bribes) {
+            return;
+        }
 
-            const orders = selectedBlocks.value[step.value.block].steps[step.value.step].orders;
-            const scores = selectedBlocks.value[step.value.block].steps[step.value.step].scores;
+        const orders = selectedBlocks.value[step.value.block].steps[step.value.step].orders;
+        const scores = selectedBlocks.value[step.value.block].steps[step.value.step].scores;
 
-            Object.keys(players.value).forEach(id => {
-                // считаем только для указанных взяток
-                if (bribes[id] !== null) {
-                    let bribe = parseInt(bribes[id]);
-                    let order = parseInt(orders[id]);
-                    // если сделался
-                    if (order === bribe) {
-                        // если взял всё
-                        if (bribe === cards_count.value) {
-                            scores[id] = bribe * 100;
-                        } else {
-                            scores[id] = bribe * 50 + 50;
-                        }
-                    } else { // не сделался
-                        // если не взял ничего
-                        if (bribe === 0) {
-                            scores[id] = barbell.value * -1;
-                        } else {
-                            scores[id] = bribe * 10;
-                        }
+        Object.keys(players.value).forEach(id => {
+            // считаем только для указанных взяток
+            if (bribes[id] !== null) {
+                let bribe = parseInt(bribes[id]);
+                let order = parseInt(orders[id]);
+                // если сделался
+                if (order === bribe) {
+                    // если взял всё
+                    if (bribe === cards_count.value) {
+                        scores[id] = bribe * 100;
+                    } else {
+                        scores[id] = bribe * 50 + 50;
+                    }
+                } else { // не сделался
+                    // если не взял ничего
+                    if (bribe === 0) {
+                        scores[id] = barbell.value * -1;
+                    } else {
+                        scores[id] = bribe * 10;
                     }
                 }
-            });
-        },
+            }
+        });
+    }
+
+    watch(
+        () => selectedBlocks.value[step.value.block]?.steps?.[step.value.step]?.bribes,
+        calcStepScores,
         {deep: true}
     )
 
@@ -1489,31 +1802,6 @@
         return parseInt(cards_count.value) - sum === parseInt(value);
     }
 
-    function exceptDetail(value) {
-        if (!activeCell.value || activeCell.value.type !== 'bids') return false;
-        const queueIndex = queue.value.indexOf(activeCell.value.playerId);
-        return except(queueIndex, value);
-    }
-
-    function exceptBribe(value) {
-        if (!activeCell.value || activeCell.value.type !== 'bribes') return false;
-        const cell = activeCell.value;
-        const block = selectedBlocks.value[cell.blockIdx];
-        const stepObj = block.steps[cell.stepKey];
-        const cards = parseInt(stepObj.cards);
-        let othersCount = 0;
-        let sum = 0;
-        for (const pid of queue.value) {
-            if (pid !== cell.playerId) {
-                if (stepObj.bribes[pid] === null) return false;
-                othersCount++;
-                sum += parseInt(stepObj.bribes[pid]);
-            }
-        }
-        if (othersCount < queue.value.length - 1) return false;
-        return cards - sum === parseInt(value);
-    }
-
     function blockHasData(block) {
         for (const stepObj of Object.values(block.steps)) {
             if (stepObj.bribes) {
@@ -1525,21 +1813,6 @@
         return false;
     }
 
-    function resetCurrentStepBribes() {
-        if (!activeCell.value) return;
-        const cell = activeCell.value;
-        const stepObj = selectedBlocks.value[cell.blockIdx].steps[cell.stepKey];
-        for (const pid of queue.value) {
-            stepObj.bribes[pid] = null;
-        }
-        activeCell.value = {
-            blockIdx: cell.blockIdx,
-            stepKey: cell.stepKey,
-            playerId: queue.value[0],
-            type: 'bribes'
-        };
-    }
-
     // Перезаказ: сбрасываем ставки всех игроков в текущей пульке для повторного ввода
     function reorder() {
         const orders = selectedBlocks.value[step.value.block].steps[step.value.step].orders;
@@ -1547,7 +1820,220 @@
             orders[id] = null;
         });
         notValidOrders.value = false;
+        bidPickIdx.value = null;
+        // со стадии взяток — назад к заказу, введённые взятки тоже сбрасываются
+        if (step.value.action === 2) {
+            resetBribes();
+            step.value.action = 1;
+        }
     }
+
+    // === Обычный режим: нижняя панель ставок ===
+
+    // индекс в очереди, выбранный вручную (возврат назад / смена ставки); null — первый без ставки
+    const bidPickIdx = ref(null)
+
+    function currentOrders() {
+        return selectedBlocks.value[step.value.block]?.steps?.[step.value.step]?.orders || {};
+    }
+
+    function bidValue(id) {
+        const v = currentOrders()[id];
+        return v === null || v === undefined || v === '' ? null : parseInt(v);
+    }
+
+    const bidCurrentIdx = computed(() => {
+        if (step.value.phase !== 2 || step.value.action !== 1) return -1;
+        if (bidPickIdx.value !== null) return bidPickIdx.value;
+        return queue.value.findIndex(id => bidValue(id) === null);
+    })
+
+    const canBidBack = computed(() => {
+        const idx = bidCurrentIdx.value;
+        return idx > 0 && bidValue(queue.value[idx]) === null;
+    })
+
+    function setBid(value) {
+        const idx = bidCurrentIdx.value;
+        if (idx < 0 || except(idx, value)) return;
+        currentOrders()[queue.value[idx]] = value;
+        bidPickIdx.value = null;
+        notValidOrders.value = false;
+        // ставки сделаны все — сразу к вводу взяток
+        if (queue.value.every(id => bidValue(id) !== null)) {
+            next();
+        }
+    }
+
+    function bidBack() {
+        if (canBidBack.value) bidPickIdx.value = bidCurrentIdx.value - 1;
+    }
+
+    // при разрешённой смене ставок можно выбрать любого игрока кликом по строке
+    function selectBidPlayer(index) {
+        if (bid_change.value) bidPickIdx.value = index;
+    }
+
+    // === Обычный режим: нижняя панель взяток ===
+
+    const bribePickIdx = ref(null)
+
+    function currentBribes() {
+        return selectedBlocks.value[step.value.block]?.steps?.[step.value.step]?.bribes || {};
+    }
+
+    function bribeValue(id) {
+        const v = currentBribes()[id];
+        return v === null || v === undefined || v === '' ? null : parseInt(v);
+    }
+
+    const bribeNumbers = computed(() => {
+        const cards = parseInt(cards_count.value) || 0;
+        return Array.from({length: cards + 1}, (_, i) => i);
+    })
+
+    const bribeCurrentIdx = computed(() => {
+        if (step.value.phase !== 2 || step.value.action !== 2) return -1;
+        if (bribePickIdx.value !== null) return bribePickIdx.value;
+        return queue.value.findIndex(id => bribeValue(id) === null);
+    })
+
+    const canBribeBack = computed(() => {
+        const idx = bribeCurrentIdx.value;
+        return idx > 0 && bribeValue(queue.value[idx]) === null;
+    })
+
+    // сумма взяток не может превысить число карт, последний игрок добирает ровно остаток
+    function bribeAllowed(value) {
+        const idx = bribeCurrentIdx.value;
+        if (idx < 0) return false;
+        const cards = parseInt(cards_count.value);
+        let sum = 0;
+        let allOthersFilled = true;
+        queue.value.forEach((id, i) => {
+            if (i === idx) return;
+            const v = bribeValue(id);
+            if (v === null) allOthersFilled = false;
+            else sum += v;
+        });
+        if (sum + value > cards) return false;
+        return !allOthersFilled || sum + value === cards;
+    }
+
+    function setBribe(value) {
+        const idx = bribeCurrentIdx.value;
+        if (idx < 0 || !bribeAllowed(value)) return;
+        const bribes = currentBribes();
+        bribes[queue.value[idx]] = value;
+        bribePickIdx.value = null;
+        notValidBribes.value = false;
+        // все взятки разобраны — остальным автоматически 0
+        const sum = queue.value.reduce((acc, id) => acc + (bribeValue(id) ?? 0), 0);
+        if (sum === parseInt(cards_count.value)) {
+            queue.value.forEach(id => {
+                if (bribeValue(id) === null) bribes[id] = 0;
+            });
+        }
+        // в табличном режиме нет кнопки «Посчитать» — сразу к следующей пульке
+        if (detailMode.value && queue.value.every(id => bribeValue(id) !== null)) {
+            next();
+        }
+    }
+
+    function bribeBack() {
+        if (canBribeBack.value) bribePickIdx.value = bribeCurrentIdx.value - 1;
+    }
+
+    function selectBribePlayer(index) {
+        bribePickIdx.value = index;
+    }
+
+    function resetBribes() {
+        const bribes = currentBribes();
+        Object.keys(bribes).forEach(id => {
+            bribes[id] = null;
+        });
+        bribePickIdx.value = null;
+        notValidBribes.value = false;
+    }
+
+    // === Возврат к сыгранной пульке ===
+
+    const replayListOpen = ref(false)
+
+    function isPlayedStep(bIdx, sKey) {
+        if (step.value.phase === 3) return true;
+        if (step.value.phase !== 2) return false;
+        return bIdx < step.value.block || (bIdx === step.value.block && parseInt(sKey) < step.value.step);
+    }
+
+    // сыгранные пульки — для выбора, какую переиграть
+    const playedSteps = computed(() => {
+        const list = [];
+        selectedBlocks.value.forEach((block, bIdx) => {
+            Object.entries(block.steps).forEach(([sKey, stepObj]) => {
+                if (isPlayedStep(bIdx, sKey)) {
+                    list.push({bIdx, sKey: parseInt(sKey), title: block.title, cards: stepObj.cards});
+                }
+            });
+        });
+        return list;
+    })
+
+    // Переиграть пульку: она и все следующие очищаются, а очки блоков, премии
+    // и очерёдность хода пересчитываются по оставшимся сыгранным пулькам.
+    function replayStep(bIdx, sKey) {
+        sKey = parseInt(sKey);
+        if (!isPlayedStep(bIdx, sKey)) return;
+        const block = selectedBlocks.value[bIdx];
+        if (!confirm(`Переиграть пульку «${block.title}», карт: ${block.steps[sKey].cards}?\nЭта и все следующие пульки будут очищены.`)) return;
+
+        const ids = Object.keys(players.value);
+        selectedBlocks.value.forEach((b, bi) => {
+            Object.entries(b.steps).forEach(([k, stepObj]) => {
+                if (bi > bIdx || (bi === bIdx && parseInt(k) >= sKey)) {
+                    ids.forEach(id => {
+                        stepObj.orders[id] = null;
+                        stepObj.bribes[id] = null;
+                        stepObj.scores[id] = null;
+                    });
+                }
+            });
+        });
+
+        // пересчёт итогов так же, как они набирались по ходу игры
+        const initialQueue = [...queue.value].sort((a, b) => a - b);
+        let played = 0;
+        selectedBlocks.value.forEach((b, bi) => {
+            ids.forEach(id => { b.total_scores[id] = 0; });
+            if (bi > bIdx) return;
+            nullPrizes();
+            step.value.block = bi;
+            Object.keys(b.steps).forEach(k => {
+                if (bi === bIdx && parseInt(k) >= sKey) return;
+                step.value.step = parseInt(k);
+                checkPrizes();
+                setScore();
+                played++;
+            });
+            if (bi < bIdx) applyPremium();
+        });
+
+        queue.value.splice(0, queue.value.length, ...initialQueue);
+        for (let i = 0; i < played; i++) changeQueue();
+
+        Object.assign(step.value, {phase: 2, action: 1, block: bIdx, step: sKey});
+        notValidOrders.value = false;
+        notValidBribes.value = false;
+        bidPickIdx.value = null;
+        bribePickIdx.value = null;
+        replayListOpen.value = false;
+    }
+
+    watch(() => [step.value.block, step.value.step, step.value.action], () => {
+        bidPickIdx.value = null;
+        bribePickIdx.value = null;
+    })
 
     function next() {
         if (step.value.phase === 3) { // начать заново — сброс сохранения и страницы
@@ -1596,6 +2082,8 @@
     }
 
     function setScore() {
+        // пересчёт синхронно: при автопереходе к следующей пульке наблюдатель не успевает сработать
+        calcStepScores();
         const block = selectedBlocks.value[step.value.block];
         const scores = block.steps[step.value.step].scores;
         Object.keys(players.value).forEach(id => {
@@ -1693,229 +2181,46 @@
 
     // === Detail Mode: Full Screen Table ===
 
-    const detailNumbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
-
     function enterDetailMode() {
         game_table_mode.value = true;
         detailMode.value = true;
-        setActiveCellForCurrentStep();
     }
 
     function exitDetailMode() {
         game_table_mode.value = false;
         detailMode.value = false;
-        activeCell.value = null;
-    }
-
-    function setActiveCellForCurrentStep() {
-        if (step.value.phase !== 2) {
-            activeCell.value = null;
-            return;
-        }
-
-        const blockIdx = step.value.block;
-        const stepKey = step.value.step;
-        const block = selectedBlocks.value[blockIdx];
-        if (!block || !block.steps[stepKey]) {
-            activeCell.value = null;
-            return;
-        }
-
-        const stepObj = block.steps[stepKey];
-
-        // Find first player without a bid
-        for (const pid of queue.value) {
-            if (stepObj.orders[pid] === null) {
-                activeCell.value = { blockIdx, stepKey, playerId: pid, type: 'bids' };
-                return;
-            }
-        }
-
-        // Find first player without a bribe
-        for (const pid of queue.value) {
-            if (stepObj.bribes[pid] === null) {
-                activeCell.value = { blockIdx, stepKey, playerId: pid, type: 'bribes' };
-                return;
-            }
-        }
-
-        // All filled for this step
-        activeCell.value = null;
-    }
-
-    function getActiveCellCards() {
-        if (!activeCell.value) return 0;
-        const block = selectedBlocks.value[activeCell.value.blockIdx];
-        if (!block) return 0;
-        const stepObj = block.steps[activeCell.value.stepKey];
-        if (!stepObj) return 0;
-        return stepObj.cards;
-    }
-
-    function setDetailValue(value) {
-        if (!activeCell.value) return;
-        const cell = activeCell.value;
-        const block = selectedBlocks.value[cell.blockIdx];
-        const stepObj = block.steps[cell.stepKey];
-
-        if (cell.type === 'bids') {
-            stepObj.orders[cell.playerId] = value;
-        } else {
-            stepObj.bribes[cell.playerId] = value;
-
-            // Автозаполнение 0 для оставшихся, если взятки уже набраны
-            const cards = parseInt(stepObj.cards);
-            let sum = 0;
-            let allFilled = true;
-            for (const pid of queue.value) {
-                if (stepObj.bribes[pid] !== null) {
-                    sum += parseInt(stepObj.bribes[pid]);
-                } else {
-                    allFilled = false;
-                }
-            }
-            if (!allFilled && sum === cards) {
-                for (const pid of queue.value) {
-                    if (stepObj.bribes[pid] === null) {
-                        stepObj.bribes[pid] = 0;
-                    }
-                }
-                advanceDetailStep();
-                return;
-            }
-        }
-
-        advanceDetailCell();
-    }
-
-    function advanceDetailCell() {
-        const cell = activeCell.value;
-        if (!cell) return;
-
-        const currentQueueIdx = queue.value.indexOf(cell.playerId);
-        const nextQueueIdx = currentQueueIdx + 1;
-
-        if (nextQueueIdx < queue.value.length) {
-            // Next player, same step, same type
-            activeCell.value = {
-                blockIdx: cell.blockIdx,
-                stepKey: cell.stepKey,
-                playerId: queue.value[nextQueueIdx],
-                type: cell.type
-            };
-        } else if (cell.type === 'bids') {
-            // All bids done -> switch to bribes, first player
-            step.value.action = 2;
-            activeCell.value = {
-                blockIdx: cell.blockIdx,
-                stepKey: cell.stepKey,
-                playerId: queue.value[0],
-                type: 'bribes'
-            };
-        } else {
-            // All bribes done -> advance to next step
-            advanceDetailStep();
-        }
-    }
-
-    function advanceDetailStep() {
-        // Validate and score
-        bribesValidation();
-        checkPrizes();
-        if (notValidBribes.value) {
-            // Should not happen if user enters via panel, but safety
-            activeCell.value = null;
-            return;
-        }
-
-        step.value.action = 1;
-        setScore();
-        let next_step = parseInt(step.value.step) + 1;
-        let next_block = parseInt(step.value.block) + 1;
-        changeQueue();
-
-        if (selectedBlocks.value[step.value.block].steps.hasOwnProperty(next_step)) {
-            step.value.step = next_step;
-        } else if (selectedBlocks.value.hasOwnProperty(next_block)) {
-            applyPremium();
-            nullPrizes();
-            step.value.block = next_block;
-            step.value.step = 1;
-        } else {
-            applyPremium();
-            step.value.phase = 3;
-            step.value.block = 0;
-            step.value.step = 1;
-            activeCell.value = null;
-            return;
-        }
-
-        setActiveCellForCurrentStep();
     }
 
     function isDetailActiveCell(blockIdx, stepKey, playerId, type) {
         if (!activeCell.value) return false;
         return activeCell.value.blockIdx === blockIdx
             && parseInt(activeCell.value.stepKey) === parseInt(stepKey)
-            && activeCell.value.playerId === playerId
+            && String(activeCell.value.playerId) === String(playerId)
             && activeCell.value.type === type;
     }
 
-    function canClickDetailCell(blockIdx, stepKey, playerId, type) {
-        // Can only click cells in the current step
-        if (blockIdx !== step.value.block) return false;
-        if (parseInt(stepKey) !== step.value.step) return false;
-
-        const block = selectedBlocks.value[blockIdx];
-        const stepObj = block.steps[stepKey];
-
-        const value = type === 'bids' ? stepObj.orders[playerId] : stepObj.bribes[playerId];
-
-        // If cell is empty, can only click if it's the active cell (which it wouldn't be if empty & not active)
-        if (value === null) return false;
-
-        // Can't click the already active cell
-        if (isDetailActiveCell(blockIdx, stepKey, playerId, type)) return false;
-
-        // Can only click if the NEXT player hasn't filled yet (i.e., this is the last filled)
-        const currentQueueIdx = queue.value.indexOf(playerId);
-        const nextQueueIdx = (currentQueueIdx + 1) % queue.value.length;
-        const nextPlayerId = queue.value[nextQueueIdx];
-        const nextValue = type === 'bids' ? stepObj.orders[nextPlayerId] : stepObj.bribes[nextPlayerId];
-
-        return nextValue === null;
-    }
-
-    function clickDetailCell(blockIdx, stepKey, playerId, type) {
-        if (canClickDetailCell(blockIdx, stepKey, playerId, type)) {
-            activeCell.value = { blockIdx, stepKey, playerId, type };
+    // Можно ли нажать на ячейку игрока в текущей пульке, чтобы перейти к его вводу.
+    // Ставки: предыдущий игрок, пока текущий не заказал (как кнопка «←»),
+    // а при «Разрешено менять ставку всем игрокам» — любой. Взятки: любой.
+    function canPickDetailCell(blockIdx, stepKey, playerId) {
+        if (step.value.phase !== 2) return false;
+        if (blockIdx !== step.value.block || parseInt(stepKey) !== step.value.step) return false;
+        const index = queue.value.findIndex(id => String(id) === String(playerId));
+        if (step.value.action === 1) {
+            if (index === bidCurrentIdx.value) return false;
+            return bid_change.value || (canBidBack.value && index === bidCurrentIdx.value - 1);
         }
+        return index !== bribeCurrentIdx.value;
     }
 
-    function showPrevBidBtn() {
-        if (!activeCell.value || activeCell.value.type !== 'bids') return false;
-        const cell = activeCell.value;
-        const block = selectedBlocks.value[cell.blockIdx];
-        if (!block) return false;
-        const stepObj = block.steps[cell.stepKey];
-        if (!stepObj || !stepObj.orders) return false;
-        // Только если для текущего игрока ещё не выбрана ставка
-        if (stepObj.orders[cell.playerId] !== null) return false;
-        // И есть предыдущий игрок в очереди
-        return queue.value.indexOf(cell.playerId) > 0;
-    }
-
-    function goToPreviousBid() {
-        if (!activeCell.value) return;
-        const cell = activeCell.value;
-        const currentIdx = queue.value.indexOf(cell.playerId);
-        if (currentIdx <= 0) return;
-        activeCell.value = {
-            blockIdx: cell.blockIdx,
-            stepKey: cell.stepKey,
-            playerId: queue.value[currentIdx - 1],
-            type: 'bids'
-        };
+    function clickDetailCell(blockIdx, stepKey, playerId) {
+        if (!canPickDetailCell(blockIdx, stepKey, playerId)) return;
+        const index = queue.value.findIndex(id => String(id) === String(playerId));
+        if (step.value.action === 1) {
+            bidPickIdx.value = index;
+        } else {
+            bribePickIdx.value = index;
+        }
     }
 
     // === сохранение состояния в localStorage ===
@@ -1974,8 +2279,18 @@
     // восстановить табличный режим после перезагрузки
     if (game_table_mode.value && [2, 3].includes(step.value.phase)) {
         detailMode.value = true;
-        setActiveCellForCurrentStep();
     }
+
+    // на листе держим текущую пульку в поле зрения
+    function scrollToCurrentStep() {
+        if (!detailMode.value) return;
+        Vue.nextTick(() => {
+            const row = document.querySelector('.detail-mode .cell-current-step');
+            if (row) row.scrollIntoView({block: 'center', behavior: 'smooth'});
+        });
+    }
+
+    watch(() => [detailMode.value, step.value.phase, step.value.block, step.value.step], scrollToCurrentStep, {flush: 'post'});
 
     // запоминаем базовый набор блоков (исходное значение default_check)
     function ensureBase() {
@@ -2046,25 +2361,36 @@
                 start,
                 detailMode,
                 activeCell,
-                detailNumbers,
                 enterDetailMode,
                 exitDetailMode,
-                setActiveCellForCurrentStep,
-                getActiveCellCards,
-                setDetailValue,
                 isDetailActiveCell,
-                canClickDetailCell,
                 clickDetailCell,
-                exceptBribe,
-                exceptDetail,
-                resetCurrentStepBribes,
+                canPickDetailCell,
                 blockHasData,
-                showPrevBidBtn,
-                goToPreviousBid
+                bidCurrentIdx,
+                canBidBack,
+                bidValue,
+                setBid,
+                bidBack,
+                selectBidPlayer,
+                bribeCurrentIdx,
+                canBribeBack,
+                bribeValue,
+                bribeNumbers,
+                bribeAllowed,
+                setBribe,
+                bribeBack,
+                selectBribePlayer,
+                resetBribes,
+                replayListOpen,
+                playedSteps,
+                isPlayedStep,
+                replayStep
             }
         }
     })
     app.mount('#app')
+    scrollToCurrentStep()
 </script>
 </body>
 </html>
